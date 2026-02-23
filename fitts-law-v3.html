@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fitt's Law — iPhone Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+
+/* ═══════════════════════════ RESET & BASE ═══════════════════════════ */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --bg:       #07070f;
+  --surf:     #0f0f1e;
+  --surf2:    #181828;
+  --border:   rgba(255,255,255,0.07);
+  --acc:      #e8ff47;
+  --blue:     #00d4ff;
+  --pink:     #ff6b9d;
+  --orange:   #ff6b35;
+  --text:     #f0f0f8;
+  --muted:    #3e3e60;
+  --muted2:   #7070a0;
+  --fdisplay: 'Bebas Neue', sans-serif;
+  --fmono:    'Space Mono', monospace;
+  --fbody:    'DM Sans', sans-serif;
+}
+
+html, body {
+  min-height: 100vh;
+  background: #050510;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--fbody);
+  gap: 28px;
+  padding: 32px 20px;
+}
+
+/* ═══════════════════════════ PHONE SHELL ═══════════════════════════ */
+.phone-wrap {
+  position: relative;
+}
+
+/* Outer metallic bezel */
+.phone-bezel {
+  width: 393px;
+  height: 852px;
+  background: linear-gradient(160deg, #3a3a4a 0%, #1c1c28 40%, #2a2a3c 100%);
+  border-radius: 54px;
+  padding: 4px;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.12),
+    inset 0 1px 0 rgba(255,255,255,0.18),
+    inset 0 -1px 0 rgba(0,0,0,0.4),
+    0 40px 100px rgba(0,0,0,0.8),
+    0 0 120px rgba(232,255,71,0.04);
+  position: relative;
+}
+
+/* Side buttons — left */
+.side-btn {
+  position: absolute;
+  background: linear-gradient(180deg, #2c2c3c, #1a1a28);
+  border-radius: 3px;
+  box-shadow: -1px 0 0 rgba(255,255,255,0.1), 1px 0 0 rgba(0,0,0,0.4);
+}
+
+.btn-silent {
+  width: 4px; height: 34px;
+  left: -4px; top: 140px;
+  border-radius: 2px 0 0 2px;
+}
+
+.btn-vol-up {
+  width: 4px; height: 60px;
+  left: -4px; top: 196px;
+  border-radius: 2px 0 0 2px;
+}
+
+.btn-vol-dn {
+  width: 4px; height: 60px;
+  left: -4px; top: 272px;
+  border-radius: 2px 0 0 2px;
+}
+
+/* Side button — right (power) */
+.btn-power {
+  width: 4px; height: 84px;
+  right: -4px; top: 210px;
+  border-radius: 0 2px 2px 0;
+  background: linear-gradient(180deg, #2c2c3c, #1a1a28);
+  box-shadow: 1px 0 0 rgba(255,255,255,0.1), -1px 0 0 rgba(0,0,0,0.4);
+}
+
+/* Inner screen glass */
+.phone-screen {
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  border-radius: 50px;
+  overflow: hidden;
+  position: relative;
+  /* Glass reflection */
+  background-image: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 50%);
+}
+
+/* ═══════════════════════════ DYNAMIC ISLAND ═══════════════════════════ */
+.dynamic-island {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 34px;
+  background: #000;
+  border-radius: 20px;
+  z-index: 1000;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.di-camera {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: #111;
+  border: 1px solid #1a1a1a;
+  position: relative;
+}
+
+.di-camera::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  background: #0d2a1a;
+}
+
+.di-sensor {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #0a1a10;
+  border: 1px solid #0f2a18;
+}
+
+/* ═══════════════════════════ STATUS BAR ═══════════════════════════ */
+.status-bar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 54px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 28px 8px;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.status-time {
+  font-family: var(--fbody);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+
+.status-icons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Signal bars */
+.signal {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.5px;
+  height: 12px;
+}
+
+.signal-bar {
+  width: 3px;
+  background: var(--text);
+  border-radius: 1px;
+}
+
+.signal-bar:nth-child(1) { height: 3px; }
+.signal-bar:nth-child(2) { height: 5px; }
+.signal-bar:nth-child(3) { height: 8px; }
+.signal-bar:nth-child(4) { height: 11px; opacity: 0.3; }
+
+/* WiFi icon */
+.wifi {
+  width: 16px; height: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+}
+
+.wifi-arc {
+  border: 2px solid var(--text);
+  border-bottom: none;
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+}
+
+.wifi-arc:nth-child(1) { width: 14px; height: 7px; }
+.wifi-arc:nth-child(2) { width: 9px; height: 5px; }
+.wifi-arc:nth-child(3) { width: 3px; height: 3px; border-radius: 50%; background: var(--text); border: none; }
+
+/* Battery */
+.battery {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.battery-body {
+  width: 22px; height: 12px;
+  border: 1.5px solid var(--text);
+  border-radius: 3px;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+}
+
+.battery-fill {
+  width: 75%;
+  height: 100%;
+  background: var(--text);
+  border-radius: 1px;
+}
+
+.battery-tip {
+  width: 2px; height: 5px;
+  background: rgba(255,255,255,0.5);
+  border-radius: 0 1px 1px 0;
+}
+
+/* ═══════════════════════════ HOME INDICATOR ═══════════════════════════ */
+.home-indicator {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 130px; height: 5px;
+  background: rgba(255,255,255,0.22);
+  border-radius: 3px;
+  z-index: 100;
+  pointer-events: none;
+}
+
+/* ═══════════════════════════ SCREEN SYSTEM ═══════════════════════════ */
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  overflow: hidden;
+  padding-top: 54px; /* status bar */
+  padding-bottom: 30px; /* home indicator space */
+}
+
+.screen.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(24px);
+}
+
+/* ═══════════════════════════ NAV DOTS ═══════════════════════════ */
+.nav-dots {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.nav-dot.active {
+  background: var(--acc);
+  border-color: var(--acc);
+  transform: scale(1.3);
+  box-shadow: 0 0 10px rgba(232,255,71,0.5);
+}
+
+.nav-dot:hover:not(.active) {
+  background: rgba(255,255,255,0.3);
+}
+
+.nav-dot-label {
+  font-family: var(--fmono);
+  font-size: 9px;
+  color: rgba(255,255,255,0.3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.nav-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ═══════════════════════════ SHARED UI ═══════════════════════════ */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(232,255,71,0.08);
+  border: 1px solid rgba(232,255,71,0.22);
+  color: var(--acc);
+  font-family: var(--fmono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  padding: 5px 11px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.tag-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--acc);
+  animation: blink 1.4s ease-in-out infinite;
+}
+
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.15} }
+
+.cta-btn {
+  width: 100%;
+  height: 56px;
+  background: var(--acc);
+  color: #07070f;
+  border: none;
+  border-radius: 16px;
+  font-family: var(--fmono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.cta-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 35px rgba(232,255,71,0.32); }
+.cta-btn:active { transform: scale(0.97); }
+
+.divider { height: 1px; background: var(--border); margin: 0 24px; flex-shrink: 0; }
+
+/* ═══════════════════════════ SCREEN 1 — TITLE ═══════════════════════════ */
+#s1 { justify-content: space-between; padding-left: 0; padding-right: 0; }
+
+.s1-top { padding: 8px 26px 0; }
+
+.s1-title {
+  font-family: var(--fdisplay);
+  font-size: 90px;
+  line-height: 0.88;
+  color: var(--text);
+  margin: 16px 0 14px;
+}
+.s1-title em { color: var(--acc); font-style: normal; display: block; }
+
+.s1-body {
+  font-size: 12px;
+  color: var(--muted2);
+  line-height: 1.65;
+  font-weight: 300;
+  max-width: 230px;
+}
+
+/* Rings graphic */
+.s1-graphic {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  margin: 12px 26px;
+  min-height: 0;
+}
+
+.ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+}
+.ring-1 { width: 230px; height: 230px; border-color: rgba(232,255,71,0.08); }
+.ring-2 { width: 160px; height: 160px; border-color: rgba(0,212,255,0.10); }
+.ring-3 { width: 96px;  height: 96px;  border-color: rgba(255,107,157,0.12); }
+.ring-4 { width: 40px;  height: 40px;  background: rgba(232,255,71,0.07); border: none; }
+
+.formula-text {
+  position: absolute;
+  bottom: 8px; left: 0; right: 0;
+  text-align: center;
+  font-family: var(--fmono);
+  font-size: 11px;
+  color: rgba(232,255,71,0.35);
+  letter-spacing: 0.05em;
+}
+
+.s1-bottom { padding: 0 26px; }
+
+.chips-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.chip {
+  flex: 1;
+  background: var(--surf);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 6px;
+  text-align: center;
+}
+.chip-val { font-family: var(--fdisplay); font-size: 28px; line-height: 1; }
+.chip-lbl { font-family: var(--fmono); font-size: 8px; color: var(--muted2); letter-spacing: 0.1em; margin-top: 2px; display: block; }
+
+/* ═══════════════════════════ SCREEN 2 — INSTRUCTIONS ═══════════════════════════ */
+#s2 { gap: 0; }
+
+.s2-head { padding: 6px 26px 16px; flex-shrink: 0; }
+.s2-title { font-family: var(--fdisplay); font-size: 48px; line-height: 0.95; color: var(--text); margin: 10px 0 6px; }
+.s2-title em { color: var(--acc); font-style: normal; }
+.s2-sub { font-size: 11px; color: var(--muted2); font-weight: 300; }
+
+.s2-scroll { flex: 1; overflow-y: auto; min-height: 0; }
+.s2-scroll::-webkit-scrollbar { display: none; }
+
+.section { padding: 0 26px; margin-bottom: 18px; }
+.section-label {
+  font-family: var(--fmono);
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-label::after { content:''; flex:1; height:1px; background:var(--border); }
+
+/* Size showcase */
+.showcase {
+  background: var(--surf);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sc-row { display: flex; align-items: center; gap: 14px; }
+
+.sc-circle {
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--fmono); font-weight: 700;
+  flex-shrink: 0;
+}
+.sc-L { width:52px;height:52px;font-size:9px;  background:rgba(232,255,71,0.1); color:var(--acc); border:2px solid rgba(232,255,71,0.3); }
+.sc-M { width:38px;height:38px;font-size:8px;  background:rgba(0,212,255,0.1);  color:var(--blue);border:2px solid rgba(0,212,255,0.3); }
+.sc-S { width:26px;height:26px;font-size:7px;  background:rgba(255,107,157,0.1);color:var(--pink);border:2px solid rgba(255,107,157,0.3); }
+
+.sc-info { flex:1; }
+.sc-name { font-size: 12px; color: var(--text); font-weight: 600; margin-bottom: 1px; }
+.sc-desc { font-size: 10px; color: var(--muted2); font-weight: 300; }
+.sc-badge { font-family:var(--fmono); font-size:9px; color:var(--muted); background:var(--surf2); padding:3px 7px; border-radius:5px; }
+
+/* Principle cards */
+.principles { display: flex; flex-direction: column; gap: 8px; }
+.p-card {
+  background: var(--surf);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  gap: 12px;
+  border-left: 3px solid;
+}
+.p-card.p1 { border-color: var(--acc); }
+.p-card.p2 { border-color: var(--blue); }
+.p-card.p3 { border-color: var(--pink); }
+.p-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.p-title { font-size: 11px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.p-desc { font-size: 10px; color: var(--muted2); line-height: 1.45; font-weight: 300; }
+
+/* Tips */
+.tips-box {
+  background: rgba(232,255,71,0.04);
+  border: 1px solid rgba(232,255,71,0.14);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tip-row { display: flex; gap: 10px; align-items: flex-start; }
+.tip-num {
+  font-family:var(--fmono); font-size:9px; color:#07070f; font-weight:700;
+  background:var(--acc); width:18px; height:18px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.tip-text { font-size: 11px; color: var(--muted2); line-height: 1.4; font-weight: 300; }
+.tip-text b { color: var(--text); font-weight: 500; }
+
+.s2-foot { padding: 10px 26px 0; flex-shrink: 0; }
+
+/* ═══════════════════════════ SCREEN 3 — EXPERIMENT ═══════════════════════════ */
+#s3 { padding-bottom: 0; }
+
+.exp-header {
+  padding: 4px 20px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.exp-label { font-family:var(--fmono); font-size:9px; color:var(--muted); letter-spacing:0.1em; }
+
+.scoreboard { display: flex; gap: 7px; }
+.score-pill {
+  background: var(--surf);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 4px 10px;
+  text-align: center;
+}
+.score-val { font-family:var(--fdisplay); font-size:18px; color:var(--acc); line-height:1; display:block; }
+.score-lbl { font-family:var(--fmono); font-size:7px; color:var(--muted2); letter-spacing:0.08em; }
+
+.progress-track { height:2px; background:var(--surf2); margin:0 20px 6px; border-radius:2px; flex-shrink:0; }
+.progress-fill { height:100%; background:linear-gradient(90deg,var(--acc),var(--blue)); border-radius:2px; transition:width 0.4s ease; width:0%; }
+
+.exp-legend { display:flex; gap:10px; padding:0 20px 4px; flex-shrink:0; }
+.leg-item { display:flex; align-items:center; gap:4px; font-size:8px; color:var(--muted); font-family:var(--fmono); }
+.leg-dot { width:6px; height:6px; border-radius:50%; }
+
+/* Arena */
+.arena {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Toast */
+.toast {
+  position: absolute;
+  bottom: 106px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15,15,30,0.96);
+  border: 1px solid rgba(255,255,255,0.07);
+  backdrop-filter: blur(10px);
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 9px;
+  color: var(--muted2);
+  white-space: nowrap;
+  z-index: 20;
+  font-family: var(--fmono);
+  letter-spacing: 0.06em;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.toast::after {
+  content: '';
+  position: absolute;
+  bottom: -5px; left: 50%;
+  transform: translateX(-50%);
+  width: 10px; height: 5px;
+  background: rgba(15,15,30,0.96);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+/* Experiment buttons — HIDDEN BY DEFAULT */
+.exp-btn {
+  position: absolute;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-family: var(--fmono);
+  font-size: 8px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.2;
+  letter-spacing: 0.03em;
+
+  /* Hidden state */
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.3);
+  transition: opacity 0.28s cubic-bezier(0.34,1.56,0.64,1),
+              transform 0.28s cubic-bezier(0.34,1.56,0.64,1),
+              box-shadow 0.2s;
+}
+
+/* REVEAL — only shown when .active */
+.exp-btn.active {
+  opacity: 1;
+  pointer-events: all;
+  transform: scale(1);
+}
+
+.exp-btn:active { transform: scale(0.85) !important; }
+.exp-btn.hit { animation: btn-pop-out 0.3s ease forwards; }
+
+@keyframes btn-pop-out {
+  0%   { transform: scale(1); opacity: 1; }
+  40%  { transform: scale(1.5); opacity: 0.5; }
+  100% { transform: scale(0); opacity: 0; }
+}
+
+/* Button size/color variants */
+.btn-large  { width:90px; height:90px; font-size:9px; background:rgba(232,255,71,0.12); color:var(--acc); border:2px solid rgba(232,255,71,0.4); }
+.btn-medium { width:60px; height:60px; font-size:8px; background:rgba(0,212,255,0.12);  color:var(--blue);border:2px solid rgba(0,212,255,0.4); }
+.btn-small  { width:38px; height:38px; font-size:7px; background:rgba(255,107,157,0.12);color:var(--pink);border:2px solid rgba(255,107,157,0.4); }
+
+/* Pulse rings for active target */
+.btn-large.active  { box-shadow:0 0 0 0 rgba(232,255,71,0); animation: pulse-y 0.9s ease-in-out infinite, reveal-pop 0.28s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+.btn-medium.active { box-shadow:0 0 0 0 rgba(0,212,255,0);  animation: pulse-b 0.9s ease-in-out infinite, reveal-pop 0.28s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+.btn-small.active  { box-shadow:0 0 0 0 rgba(255,107,157,0);animation: pulse-p 0.9s ease-in-out infinite, reveal-pop 0.28s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+
+@keyframes reveal-pop { from{transform:scale(0.3);opacity:0;} to{transform:scale(1);opacity:1;} }
+@keyframes pulse-y { 0%,100%{box-shadow:0 0 0 0 rgba(232,255,71,0.45),0 0 20px rgba(232,255,71,0.18);} 50%{box-shadow:0 0 0 10px rgba(232,255,71,0),0 0 20px rgba(232,255,71,0.18);} }
+@keyframes pulse-b { 0%,100%{box-shadow:0 0 0 0 rgba(0,212,255,0.45),0 0 18px rgba(0,212,255,0.18);}  50%{box-shadow:0 0 0 8px rgba(0,212,255,0),0 0 18px rgba(0,212,255,0.18);} }
+@keyframes pulse-p { 0%,100%{box-shadow:0 0 0 0 rgba(255,107,157,0.45),0 0 14px rgba(255,107,157,0.18);} 50%{box-shadow:0 0 0 6px rgba(255,107,157,0),0 0 14px rgba(255,107,157,0.18);} }
+
+/* Anchor / START button */
+.anchor-btn {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70px; height: 70px;
+  background: var(--acc);
+  color: #07070f;
+  border: none;
+  border-radius: 50%;
+  font-family: var(--fmono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  z-index: 10;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center;
+  line-height: 1.3;
+  transition: transform 0.15s, box-shadow 0.2s;
+}
+.anchor-btn:hover { transform: translateX(-50%) scale(1.06); box-shadow: 0 0 28px rgba(232,255,71,0.45); }
+.anchor-btn:active { transform: translateX(-50%) scale(0.92); }
+.anchor-btn.waiting { animation: anchor-pulse 1.5s ease-in-out infinite; }
+@keyframes anchor-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(232,255,71,0.5);} 50%{box-shadow:0 0 0 14px rgba(232,255,71,0);} }
+
+/* Hit ripple */
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 50;
+  transform: scale(1);
+  animation: ripple-go 0.55s ease-out forwards;
+}
+@keyframes ripple-go { to { transform: scale(4); opacity: 0; } }
+
+/* Time badge */
+.time-badge {
+  position: absolute;
+  background: var(--acc);
+  color: #07070f;
+  font-family: var(--fmono);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 20px;
+  pointer-events: none;
+  z-index: 100;
+  white-space: nowrap;
+  animation: badge-float 0.9s ease forwards;
+}
+@keyframes badge-float { 0%{opacity:1;transform:translateY(0);} 100%{opacity:0;transform:translateY(-52px);} }
+
+/* ═══════════════════════════ SCREEN 4 — RESULTS ═══════════════════════════ */
+#s4 { overflow-y: auto; }
+#s4::-webkit-scrollbar { display: none; }
+
+.r-hero { padding: 6px 26px 18px; flex-shrink: 0; }
+.r-eyebrow { font-family:var(--fmono); font-size:9px; color:var(--muted); letter-spacing:0.18em; text-transform:uppercase; margin-bottom:4px; }
+.r-title { font-family:var(--fdisplay); font-size:60px; line-height:0.92; color:var(--text); }
+.r-title em { color:var(--acc); font-style:normal; }
+
+.stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:0 26px; margin-bottom:10px; }
+.stat-card { background:var(--surf); border:1px solid var(--border); border-radius:14px; padding:14px 12px; }
+.stat-card.wide { grid-column:1/-1; }
+.stat-val { font-family:var(--fdisplay); font-size:34px; line-height:1; display:block; margin-bottom:3px; }
+.stat-lbl { font-family:var(--fmono); font-size:8px; color:var(--muted2); letter-spacing:0.12em; text-transform:uppercase; }
+
+.breakdown-head {
+  font-family:var(--fmono); font-size:8px; color:var(--muted); letter-spacing:0.18em; text-transform:uppercase;
+  margin-bottom:12px; display:flex; align-items:center; gap:8px;
+}
+.breakdown-head::after { content:''; flex:1; height:1px; background:var(--border); }
+
+.br-row { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+.br-dot { width:7px;height:7px;border-radius:50%;flex-shrink:0; }
+.br-lbl { font-size:10px;color:var(--text);width:66px;flex-shrink:0;font-weight:500; }
+.br-track { flex:1;height:7px;background:var(--surf2);border-radius:4px;overflow:hidden; }
+.br-fill { height:100%;border-radius:4px;width:0%;transition:width 1.3s cubic-bezier(0.22,1,0.36,1); }
+.br-time { font-family:var(--fmono);font-size:9px;color:var(--muted2);width:46px;text-align:right;flex-shrink:0; }
+
+.insight-card {
+  background:rgba(232,255,71,0.04);
+  border:1px solid rgba(232,255,71,0.16);
+  border-radius:14px;
+  padding:16px;
+  margin:0 26px 12px;
+  flex-shrink: 0;
+}
+.insight-ey { font-family:var(--fmono);font-size:8px;color:var(--acc);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:7px;display:flex;align-items:center;gap:5px; }
+.insight-ey::before { content:'✦'; font-size:9px; }
+.insight-body { font-size:12px;color:var(--text);line-height:1.6;font-weight:300; }
+.insight-body strong { color:var(--acc);font-weight:600; }
+
+.retry-btn {
+  margin: 0 26px;
+  width: calc(100% - 52px);
+  height: 52px;
+  background: var(--acc);
+  color: #07070f;
+  border: none;
+  border-radius: 14px;
+  font-family: var(--fmono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.2s;
+  flex-shrink: 0;
+}
+.retry-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(232,255,71,0.28); }
+.retry-btn:active { transform: scale(0.97); }
+
+/* ═══════════════════════════ ENTRY ANIMATION ═══════════════════════════ */
+@keyframes fade-up { from{opacity:0;transform:translateY(16px);} to{opacity:1;transform:translateY(0);} }
+.anim { animation: fade-up 0.5s ease forwards; opacity: 0; }
+.d1{animation-delay:0.05s} .d2{animation-delay:0.15s} .d3{animation-delay:0.25s} .d4{animation-delay:0.35s} .d5{animation-delay:0.45s}
+
+</style>
+</head>
+<body>
+
+<!-- ════════════════ PHONE ════════════════ -->
+<div class="phone-wrap">
+
+  <!-- Hardware buttons -->
+  <div class="side-btn btn-silent"></div>
+  <div class="side-btn btn-vol-up"></div>
+  <div class="side-btn btn-vol-dn"></div>
+  <div class="side-btn btn-power"></div>
+
+  <div class="phone-bezel">
+    <div class="phone-screen">
+
+      <!-- Dynamic Island -->
+      <div class="dynamic-island">
+        <div class="di-camera"></div>
+        <div class="di-sensor"></div>
+      </div>
+
+      <!-- Status Bar -->
+      <div class="status-bar">
+        <div class="status-time">9:41</div>
+        <div class="status-icons">
+          <div class="signal">
+            <div class="signal-bar"></div>
+            <div class="signal-bar"></div>
+            <div class="signal-bar"></div>
+            <div class="signal-bar"></div>
+          </div>
+          <div class="wifi">
+            <div class="wifi-arc"></div>
+            <div class="wifi-arc"></div>
+            <div class="wifi-arc"></div>
+          </div>
+          <div class="battery">
+            <div class="battery-body"><div class="battery-fill"></div></div>
+            <div class="battery-tip"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SCREEN 1 — TITLE ══ -->
+      <div class="screen" id="s1">
+        <div class="s1-top">
+          <div class="tag anim d1"><span class="tag-dot"></span>UX RESEARCH · 2026</div>
+          <div class="s1-title anim d2">FITT'S<em>LAW</em></div>
+          <p class="s1-body anim d3">A hands-on experiment testing how button size & distance affect your tap speed.</p>
+        </div>
+
+        <div class="s1-graphic anim d3">
+          <div class="ring ring-1"></div>
+          <div class="ring ring-2"></div>
+          <div class="ring ring-3"></div>
+          <div class="ring ring-4"></div>
+          <div class="formula-text">T = a + b · log₂(2D/W)</div>
+        </div>
+
+        <div class="s1-bottom anim d4">
+          <div class="chips-row">
+            <div class="chip">
+              <div class="chip-val" style="color:var(--acc)">8</div>
+              <span class="chip-lbl">BUTTONS</span>
+            </div>
+            <div class="chip">
+              <div class="chip-val" style="color:var(--blue)">3</div>
+              <span class="chip-lbl">SIZES</span>
+            </div>
+            <div class="chip">
+              <div class="chip-val" style="color:var(--pink)">∞</div>
+              <span class="chip-lbl">TRIES</span>
+            </div>
+          </div>
+          <button class="cta-btn anim d5" onclick="nav(1)">BEGIN EXPERIMENT <span>→</span></button>
+        </div>
+      </div>
+
+      <!-- ══ SCREEN 2 — INSTRUCTIONS ══ -->
+      <div class="screen hidden" id="s2">
+        <div class="s2-head">
+          <div class="tag"><span class="tag-dot"></span>INSTRUCTIONS</div>
+          <div class="s2-title">HOW IT<em>WORKS</em></div>
+          <p class="s2-sub">Understand the experiment before you begin.</p>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="s2-scroll">
+          <div style="height:14px"></div>
+
+          <div class="section">
+            <div class="section-label">Objective</div>
+            <div style="background:var(--surf);border-radius:14px;padding:13px 15px;display:flex;gap:12px;align-items:center;">
+              <span style="font-size:22px;">🎯</span>
+              <p style="font-size:11px;color:var(--muted2);line-height:1.5;font-weight:300;">Tap the <b style="color:var(--text);font-weight:600;">highlighted button</b> that appears, then return to <b style="color:var(--acc);font-weight:600;">START</b>. Each button pops up one at a time as a surprise!</p>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-label">Button Sizes</div>
+            <div class="showcase">
+              <div class="sc-row">
+                <div class="sc-circle sc-L">L</div>
+                <div class="sc-info">
+                  <div class="sc-name" style="color:var(--acc)">Large Buttons</div>
+                  <div class="sc-desc">90px — Easy to hit, fast response</div>
+                </div>
+                <div class="sc-badge">×3</div>
+              </div>
+              <div class="sc-row">
+                <div class="sc-circle sc-M">M</div>
+                <div class="sc-info">
+                  <div class="sc-name" style="color:var(--blue)">Medium Buttons</div>
+                  <div class="sc-desc">60px — Moderate effort & speed</div>
+                </div>
+                <div class="sc-badge">×3</div>
+              </div>
+              <div class="sc-row">
+                <div class="sc-circle sc-S">S</div>
+                <div class="sc-info">
+                  <div class="sc-name" style="color:var(--pink)">Small Buttons</div>
+                  <div class="sc-desc">38px — Harder to hit, slower</div>
+                </div>
+                <div class="sc-badge">×2</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-label">Fitt's Law Principles</div>
+            <div class="principles">
+              <div class="p-card p1">
+                <div class="p-icon">📏</div>
+                <div>
+                  <div class="p-title">Size matters</div>
+                  <div class="p-desc">Larger buttons are faster and easier to tap. Doubling target size noticeably cuts movement time.</div>
+                </div>
+              </div>
+              <div class="p-card p2">
+                <div class="p-icon">↔️</div>
+                <div>
+                  <div class="p-title">Distance costs time</div>
+                  <div class="p-desc">Buttons farther from START take longer to reach. Each extra distance adds measurable delay.</div>
+                </div>
+              </div>
+              <div class="p-card p3">
+                <div class="p-icon">⚖️</div>
+                <div>
+                  <div class="p-title">Index of Difficulty</div>
+                  <div class="p-desc">T = a + b·log₂(2D/W) — time scales logarithmically with the distance-to-size ratio.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-label">Tips</div>
+            <div class="tips-box">
+              <div class="tip-row"><div class="tip-num">1</div><div class="tip-text">Tap <b>START</b> first, then immediately hit the button that appears.</div></div>
+              <div class="tip-row"><div class="tip-num">2</div><div class="tip-text">Always return to <b>START</b> between each tap — this resets the distance.</div></div>
+              <div class="tip-row"><div class="tip-num">3</div><div class="tip-text">Buttons appear <b>one at a time</b> as a surprise — stay focused!</div></div>
+              <div class="tip-row"><div class="tip-num">4</div><div class="tip-text">Notice how <b style="color:var(--acc)">large yellow</b> buttons feel faster than <b style="color:var(--pink)">small pink</b> ones.</div></div>
+            </div>
+          </div>
+
+          <div style="height:6px"></div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="s2-foot" style="padding-top:12px;">
+          <button class="cta-btn" onclick="startExperiment()">START EXPERIMENT <span>→</span></button>
+        </div>
+      </div>
+
+      <!-- ══ SCREEN 3 — EXPERIMENT ══ -->
+      <div class="screen hidden" id="s3">
+        <div class="exp-header">
+          <div class="exp-label">FITTS LAW / TRIAL</div>
+          <div class="scoreboard">
+            <div class="score-pill">
+              <span class="score-val" id="hit-count">0</span>
+              <span class="score-lbl">HITS</span>
+            </div>
+            <div class="score-pill">
+              <span class="score-val" id="avg-time">—</span>
+              <span class="score-lbl">AVG MS</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="progress-track">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+
+        <div class="exp-legend">
+          <div class="leg-item"><div class="leg-dot" style="background:var(--acc)"></div>LARGE</div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--blue)"></div>MEDIUM</div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--pink)"></div>SMALL</div>
+        </div>
+
+        <div class="arena" id="arena">
+          <div class="toast" id="toast">TAP ↓ START ↓ TO BEGIN</div>
+        </div>
+
+        <button class="anchor-btn waiting" id="anchor-btn" onclick="onAnchorClick()">
+          START<br>HERE
+        </button>
+      </div>
+
+      <!-- ══ SCREEN 4 — RESULTS ══ -->
+      <div class="screen hidden" id="s4">
+        <div class="r-hero">
+          <div class="r-eyebrow">EXPERIMENT COMPLETE</div>
+          <div class="r-title">YOUR<em>DATA</em></div>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <span class="stat-val" style="color:var(--acc)" id="r-total">0</span>
+            <span class="stat-lbl">Total Hits</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-val" style="color:var(--blue)" id="r-avg">—</span>
+            <span class="stat-lbl">Avg Time</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-val" style="color:var(--acc)" id="r-best">—</span>
+            <span class="stat-lbl">Best Hit</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-val" style="color:var(--orange)" id="r-worst">—</span>
+            <span class="stat-lbl">Slowest Hit</span>
+          </div>
+          <div class="stat-card wide">
+            <div class="breakdown-head">By Button Type</div>
+            <div class="br-row">
+              <div class="br-dot" style="background:var(--acc)"></div>
+              <div class="br-lbl">Large ×3</div>
+              <div class="br-track"><div class="br-fill" style="background:var(--acc)" id="bar-L"></div></div>
+              <div class="br-time" id="t-L">—</div>
+            </div>
+            <div class="br-row">
+              <div class="br-dot" style="background:var(--blue)"></div>
+              <div class="br-lbl">Medium ×3</div>
+              <div class="br-track"><div class="br-fill" style="background:var(--blue)" id="bar-M"></div></div>
+              <div class="br-time" id="t-M">—</div>
+            </div>
+            <div class="br-row" style="margin-bottom:0">
+              <div class="br-dot" style="background:var(--pink)"></div>
+              <div class="br-lbl">Small ×2</div>
+              <div class="br-track"><div class="br-fill" style="background:var(--pink)" id="bar-S"></div></div>
+              <div class="br-time" id="t-S">—</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-card">
+          <div class="insight-ey">Key Insight</div>
+          <div class="insight-body" id="insight-text">Analyzing your results…</div>
+        </div>
+
+        <button class="retry-btn" onclick="nav(0)">↺ TRY AGAIN</button>
+      </div>
+
+      <!-- Home indicator -->
+      <div class="home-indicator"></div>
+
+    </div><!-- /phone-screen -->
+  </div><!-- /phone-bezel -->
+</div><!-- /phone-wrap -->
+
+<!-- ════════════════ NAV DOTS ════════════════ -->
+<div class="nav-wrap">
+  <div class="nav-dots">
+    <div class="nav-dot active" id="dot-0" onclick="nav(0)" title="Title"></div>
+    <div class="nav-dot" id="dot-1" onclick="nav(1)" title="Instructions"></div>
+    <div class="nav-dot" id="dot-2" onclick="nav(2)" title="Experiment"></div>
+    <div class="nav-dot" id="dot-3" onclick="nav(3)" title="Results"></div>
+  </div>
+  <div class="nav-dot-label" id="dot-label">TITLE</div>
+</div>
+
+<script>
+/* ════════ NAVIGATION ════════ */
+const SCREENS = ['s1','s2','s3','s4'];
+const DOT_LABELS = ['TITLE','INSTRUCTIONS','EXPERIMENT','RESULTS'];
+let currentScreen = 0;
+
+function nav(idx) {
+  // Don't allow jumping to results via dot without data
+  if (idx === 3 && timings.large.length + timings.medium.length + timings.small.length === 0) return;
+  SCREENS.forEach((id,i) => {
+    document.getElementById(id).classList.toggle('hidden', i !== idx);
+  });
+  document.querySelectorAll('.nav-dot').forEach((d,i) => {
+    d.classList.toggle('active', i === idx);
+  });
+  document.getElementById('dot-label').textContent = DOT_LABELS[idx];
+  currentScreen = idx;
+}
+
+/* ════════ BUTTON LAYOUT ════════
+   Arena: ~385 × ~490px
+   Anchor center: (192, 480)
+   All positions in % of arena W/H
+════════════════════════════════ */
+const BTN_CFG = [
+  // LARGE (90px)
+  { id:'L1', type:'large',  xP:0.50, yP:0.07, label:'L1' }, // top-center / near
+  { id:'L2', type:'large',  xP:0.12, yP:0.33, label:'L2' }, // left-mid
+  { id:'L3', type:'large',  xP:0.82, yP:0.20, label:'L3' }, // upper-right
+  // MEDIUM (60px)
+  { id:'M1', type:'medium', xP:0.80, yP:0.60, label:'M1' }, // lower-right
+  { id:'M2', type:'medium', xP:0.18, yP:0.65, label:'M2' }, // lower-left
+  { id:'M3', type:'medium', xP:0.54, yP:0.40, label:'M3' }, // center-mid
+  // SMALL (38px)
+  { id:'S1', type:'small',  xP:0.07, yP:0.08, label:'S1' }, // far top-left
+  { id:'S2', type:'small',  xP:0.91, yP:0.78, label:'S2' }, // far bottom-right
+];
+
+const SZ = { large:90, medium:60, small:38 };
+
+let sequence = [];
+let currentIdx = 0;
+let startTime = 0;
+let timings = { large:[], medium:[], small:[] };
+let expState = 'idle'; // idle | wait-anchor | run
+
+function shuffle(arr) {
+  const a = [...arr];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+
+function avg(arr) {
+  return arr.length ? Math.round(arr.reduce((a,b)=>a+b,0)/arr.length) : null;
+}
+
+/* ════════ START EXPERIMENT ════════ */
+function startExperiment() {
+  nav(2);
+  initExp();
+}
+
+function initExp() {
+  sequence = shuffle(BTN_CFG);
+  currentIdx = 0;
+  timings = { large:[], medium:[], small:[] };
+  expState = 'wait-anchor';
+
+  document.getElementById('hit-count').textContent = '0';
+  document.getElementById('avg-time').textContent = '—';
+  document.getElementById('progress-fill').style.width = '0%';
+  setToast('TAP ↓ START ↓ TO BEGIN');
+
+  const anchor = document.getElementById('anchor-btn');
+  anchor.classList.add('waiting');
+
+  buildButtons();
+}
+
+function buildButtons() {
+  const arena = document.getElementById('arena');
+  arena.querySelectorAll('.exp-btn').forEach(b => b.remove());
+
+  const W = arena.offsetWidth  || 345;
+  const H = arena.offsetHeight || 490;
+
+  BTN_CFG.forEach(cfg => {
+    const btn = document.createElement('button');
+    btn.className = `exp-btn btn-${cfg.type}`;
+    btn.id = `eb-${cfg.id}`;
+    btn.dataset.id = cfg.id;
+    btn.dataset.type = cfg.type;
+    btn.textContent = cfg.label;
+
+    const s = SZ[cfg.type];
+    btn.style.left = (cfg.xP * W - s/2) + 'px';
+    btn.style.top  = (cfg.yP * H - s/2) + 'px';
+
+    btn.addEventListener('click', (e) => onExpClick(e, cfg.id, cfg.type, btn));
+    arena.appendChild(btn);
+  });
+}
+
+/* ════════ ANCHOR CLICK ════════ */
+function onAnchorClick() {
+  if (expState !== 'wait-anchor') return;
+  expState = 'run';
+  document.getElementById('anchor-btn').classList.remove('waiting');
+  revealTarget();
+}
+
+/* ════════ REVEAL SINGLE TARGET (SURPRISE) ════════ */
+function revealTarget() {
+  if (currentIdx >= sequence.length) {
+    endExp();
+    return;
+  }
+
+  const target = sequence[currentIdx];
+
+  // Hide ALL buttons first
+  BTN_CFG.forEach(cfg => {
+    const b = document.getElementById(`eb-${cfg.id}`);
+    if (b) {
+      b.classList.remove('active', 'hit');
+    }
+  });
+
+  // Show ONLY the target — surprise!
+  const targetBtn = document.getElementById(`eb-${target.id}`);
+  // Small delay for pop-in effect
+  setTimeout(() => {
+    targetBtn.classList.add('active');
+  }, 80);
+
+  setToast(`→ HIT IT! ${target.label} (${target.type.toUpperCase()})`);
+
+  document.getElementById('progress-fill').style.width =
+    (currentIdx / sequence.length * 100) + '%';
+
+  startTime = performance.now();
+}
+
+/* ════════ HIT EXPERIMENT BUTTON ════════ */
+function onExpClick(e, id, type, btn) {
+  if (expState !== 'run') return;
+  if (id !== sequence[currentIdx].id) return;
+
+  const ms = Math.round(performance.now() - startTime);
+  timings[type].push(ms);
+
+  // Ripple effect
+  const arena = document.getElementById('arena');
+  const ar = arena.getBoundingClientRect();
+  const br = btn.getBoundingClientRect();
+  const s  = SZ[type];
+  const col = type==='large'?'rgba(232,255,71,0.3)': type==='medium'?'rgba(0,212,255,0.3)':'rgba(255,107,157,0.3)';
+
+  const rip = document.createElement('div');
+  rip.className = 'ripple';
+  rip.style.cssText = `width:${s}px;height:${s}px;left:${br.left-ar.left}px;top:${br.top-ar.top}px;background:${col};`;
+  arena.appendChild(rip);
+  setTimeout(() => rip.remove(), 600);
+
+  // Time badge
+  const badge = document.createElement('div');
+  badge.className = 'time-badge';
+  badge.textContent = ms + 'ms';
+  badge.style.cssText = `left:${br.left-ar.left+s/2-20}px;top:${br.top-ar.top-8}px;`;
+  arena.appendChild(badge);
+  setTimeout(() => badge.remove(), 950);
+
+  // Hit animation
+  btn.classList.add('hit');
+  btn.classList.remove('active');
+
+  // Update scoreboard
+  currentIdx++;
+  const all = [...timings.large, ...timings.medium, ...timings.small];
+  document.getElementById('hit-count').textContent = all.length;
+  if (all.length) document.getElementById('avg-time').textContent = avg(all);
+
+  // Back to anchor
+  expState = 'wait-anchor';
+  setToast('↓ RETURN TO START ↓');
+  document.getElementById('anchor-btn').classList.add('waiting');
+
+  setTimeout(() => {
+    btn.classList.remove('hit');
+  }, 350);
+}
+
+function setToast(text) {
+  document.getElementById('toast').textContent = text;
+}
+
+/* ════════ END → RESULTS ════════ */
+function endExp() {
+  const all = [...timings.large, ...timings.medium, ...timings.small];
+  const aL  = avg(timings.large);
+  const aM  = avg(timings.medium);
+  const aS  = avg(timings.small);
+  const aAll = avg(all);
+  const best  = Math.min(...all);
+  const worst = Math.max(...all);
+  const maxT  = Math.max(aL||0, aM||0, aS||0) || 1;
+
+  document.getElementById('r-total').textContent = all.length;
+  document.getElementById('r-avg').textContent   = aAll ? aAll+'ms' : '—';
+  document.getElementById('r-best').textContent  = best+'ms';
+  document.getElementById('r-worst').textContent = worst+'ms';
+
+  document.getElementById('t-L').textContent = aL ? aL+'ms' : '—';
+  document.getElementById('t-M').textContent = aM ? aM+'ms' : '—';
+  document.getElementById('t-S').textContent = aS ? aS+'ms' : '—';
+
+  setTimeout(() => {
+    document.getElementById('bar-L').style.width = ((aL||0)/maxT*100)+'%';
+    document.getElementById('bar-M').style.width = ((aM||0)/maxT*100)+'%';
+    document.getElementById('bar-S').style.width = ((aS||0)/maxT*100)+'%';
+  }, 400);
+
+  // Generate insight
+  let txt = '';
+  if (aL && aS) {
+    const diff = Math.abs(aS - aL);
+    if (aS > aL) {
+      txt = `Large buttons were <strong>${diff}ms faster</strong> to tap than small ones — exactly what Fitt's Law predicts. Bigger targets reduce movement time and cognitive load.`;
+    } else {
+      txt = `Great precision! Your times were surprisingly consistent across sizes. Try again after a break — fatigue gradually reveals the size-speed relationship Fitt's Law describes.`;
+    }
+  } else {
+    txt = `Your data demonstrates Fitt's Law in action — <strong>target size and distance</strong> directly shape how long it takes to complete a pointing movement. Larger, closer buttons win every time.`;
+  }
+  document.getElementById('insight-text').innerHTML = txt;
+
+  nav(3);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fitts' Law – Mobile Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ── OUTER SHELL ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #0e1015;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+  background-image: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(204,255,0,0.06) 0%, transparent 60%);
+}
+
+/* ── PHONE ── */
+.phone {
+  width: 390px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.phone-shell {
+  background: #111;
+  border-radius: 54px;
+  padding: 14px;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 0 10px #0a0a0a,
+    0 0 0 11px rgba(255,255,255,0.05),
+    0 50px 130px rgba(0,0,0,0.9),
+    0 0 80px rgba(204,255,0,0.06);
+}
+
+/* Side buttons */
+.phone-shell::before {
+  content:''; position:absolute;
+  left:-13px; top:130px;
+  width:6px; height:34px;
+  background:#111; border-radius:3px 0 0 3px;
+  box-shadow: 0 48px 0 #111, 0 64px 0 #111;
+}
+.phone-shell::after {
+  content:''; position:absolute;
+  right:-13px; top:160px;
+  width:6px; height:64px;
+  background:#111; border-radius:0 3px 3px 0;
+}
+
+/* Status bar */
+.status-bar {
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 0 18px;
+  height: 44px;
+}
+.status-time {
+  font-family:'Space Mono',monospace;
+  font-size:13px; font-weight:700; color:#fff;
+}
+.status-icons { display:flex; align-items:center; gap:5px; }
+.status-icons svg { fill:#fff; }
+
+/* Dynamic Island */
+.dynamic-island {
+  width:118px; height:34px;
+  background:#000; border-radius:20px;
+  margin: 0 auto; position:relative; top:-8px;
+}
+
+/* Viewport */
+.app-viewport {
+  background: #0d0d0d;
+  border-radius: 0 0 38px 38px;
+  overflow: hidden;
+  height: 782px;
+  position: relative;
+}
+.app-scroll {
+  height:100%; overflow-y:auto; overflow-x:hidden;
+  -webkit-overflow-scrolling:touch; scrollbar-width:none;
+}
+.app-scroll::-webkit-scrollbar { display:none; }
+
+/* Home indicator */
+.home-ind {
+  height:28px; display:flex; align-items:center; justify-content:center;
+  border-radius:0 0 38px 38px; background:#111; margin-top:-1px;
+}
+.home-bar { width:120px; height:5px; background:rgba(255,255,255,0.18); border-radius:3px; }
+
+/* Nav dots */
+.nav-dots {
+  display:flex; justify-content:center; gap:6px; margin-top:16px;
+}
+.nd {
+  width:6px; height:6px; border-radius:50%;
+  background:rgba(255,255,255,0.15); cursor:pointer; transition:all .2s;
+}
+.nd.on { background:#CCFF00; width:18px; border-radius:3px; }
+
+/* ════════════════════════════
+   APP VARIABLES
+════════════════════════════ */
+:root {
+  --black:   #0d0d0d;
+  --card:    #161616;
+  --card2:   #1a1a1a;
+  --white:   #ffffff;
+  --lime:    #CCFF00;
+  --lime2:   #b8e600;
+  --gray:    #555;
+  --gray2:   #888;
+  --cyan:    #00e5ff;
+  --pink:    #ff4d8d;
+  --orange:  #ff6b2b;
+  --yellow:  #ffdc00;
+  --green:   #00e676;
+  --red:     #ff3d3d;
+}
+
+/* ── SCREENS ── */
+.screen {
+  display:none; flex-direction:column;
+  min-height:782px; width:100%;
+  animation: fIn .3s ease;
+}
+.screen.active { display:flex; }
+@keyframes fIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+/* ════════════════════════════
+   SCREEN 1 — SPLASH
+════════════════════════════ */
+#s1 {
+  background: #0d0d0d;
+  padding: 28px 24px 24px;
+  position:relative; overflow:hidden;
+}
+
+/* Dot grid decoration */
+.dot-grid {
+  position:absolute; right:-10px; top:340px;
+  display:grid; grid-template-columns:repeat(8,1fr); gap:6px;
+  opacity:0.35;
+}
+.dot-grid span {
+  width:5px; height:5px; border-radius:50%; background:#333; display:block;
+}
+
+/* Concentric circles */
+.circles {
+  position:absolute; right:-40px; top:280px;
+  width:260px; height:260px;
+  pointer-events:none;
+}
+.circle {
+  position:absolute; border-radius:50%;
+  border:1px solid rgba(204,255,0,0.15);
+  top:50%; left:50%; transform:translate(-50%,-50%);
+}
+.c1{width:80px;height:80px;background:rgba(204,255,0,0.12);border-color:rgba(204,255,0,0.3);}
+.c2{width:140px;height:140px;}
+.c3{width:210px;height:210px;border-color:rgba(204,255,0,0.07);}
+
+.splash-badge {
+  display:inline-flex; align-items:center; gap:6px;
+  background: rgba(204,255,0,0.08);
+  border: 1px solid rgba(204,255,0,0.25);
+  border-radius:6px;
+  padding:5px 12px;
+  font-family:'Space Mono',monospace;
+  font-size:10px; letter-spacing:0.12em; color:var(--lime);
+  text-transform:uppercase;
+  margin-bottom:28px;
+  opacity:0; animation:up .5s .1s ease forwards;
+}
+
+.splash-h1 {
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:900;
+  font-size:96px; line-height:.88;
+  letter-spacing:-0.02em;
+  color:#fff;
+  margin-bottom:0;
+  opacity:0; animation:up .5s .25s ease forwards;
+}
+.splash-h1 .lime { color:var(--lime); display:block; }
+
+.splash-desc {
+  font-family:'Inter',sans-serif;
+  font-size:13px; color:var(--gray2); line-height:1.6; font-weight:300;
+  max-width:220px; margin:20px 0 0;
+  opacity:0; animation:up .5s .4s ease forwards;
+}
+
+/* Formula box — left border style like reference */
+.formula-box {
+  border-left:3px solid var(--lime);
+  background:rgba(204,255,0,0.04);
+  border-radius:0 10px 10px 0;
+  padding:14px 16px;
+  margin:28px 0;
+  opacity:0; animation:up .5s .55s ease forwards;
+}
+.f-eq {
+  font-family:'Space Mono',monospace;
+  font-size:15px; color:#fff; letter-spacing:0.04em;
+  margin-bottom:6px;
+}
+.f-eq .v { color:var(--lime); }
+.f-desc { font-size:11px; color:var(--gray2); line-height:1.55; }
+
+.splash-cta {
+  width:100%;
+  background:var(--lime);
+  color:#000;
+  border:none; border-radius:50px;
+  padding:18px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:18px; font-weight:700;
+  letter-spacing:0.12em; text-transform:uppercase;
+  cursor:pointer;
+  transition:all .2s;
+  margin-top:4px;
+  opacity:0; animation:up .5s .7s ease forwards;
+  -webkit-tap-highlight-color:transparent;
+}
+.splash-cta:active { transform:scale(0.97); background:var(--lime2); }
+
+@keyframes up { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+
+/* ════════════════════════════
+   SCREEN 2 — INSTRUCTIONS
+════════════════════════════ */
+#s2 { background:var(--black); }
+
+.i-hdr {
+  background:#111;
+  padding:20px 20px 20px;
+  border-bottom:1px solid #1e1e1e;
+}
+.i-back {
+  display:inline-flex; align-items:center; gap:5px;
+  font-family:'Space Mono',monospace; font-size:9px;
+  color:var(--gray2); letter-spacing:.1em; text-transform:uppercase;
+  cursor:pointer; background:none; border:none; margin-bottom:14px;
+  -webkit-tap-highlight-color:transparent;
+}
+.i-title {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:48px; font-weight:900; color:#fff; line-height:.9; letter-spacing:-.01em;
+}
+.i-sub { font-family:'Inter',sans-serif; font-size:12px; color:var(--gray2); margin-top:6px; font-weight:300; }
+
+.i-body { padding:18px 18px 0; flex:1; }
+
+.icard {
+  background:var(--card);
+  border:1px solid #222;
+  border-radius:16px; padding:16px; margin-bottom:12px;
+}
+.icard h3 {
+  font-family:'Space Mono',monospace; font-size:10px;
+  color:var(--lime); letter-spacing:.12em; text-transform:uppercase;
+  margin-bottom:10px;
+}
+.icard p, .icard li {
+  font-family:'Inter',sans-serif; font-size:12px; color:#aaa; line-height:1.6; font-weight:300;
+}
+.icard ul { list-style:none; padding:0; }
+.icard ul li { padding:3px 0 3px 14px; position:relative; }
+.icard ul li::before { content:'→'; position:absolute; left:0; color:var(--lime); }
+
+/* Size demo */
+.srow { display:flex; align-items:flex-end; gap:14px; margin-top:14px; }
+.sb {
+  display:flex; align-items:center; justify-content:center; flex-direction:column;
+  background:#1e1e1e; border:2px solid #333; border-radius:10px;
+  color:#fff; font-family:'Space Mono',monospace; font-weight:700;
+}
+.sb.lg{width:74px;height:74px;font-size:10px;border-color:var(--lime);}
+.sb.md{width:52px;height:52px;font-size:9px; border-color:var(--cyan);}
+.sb.sm{width:34px;height:34px;font-size:7px; border-color:var(--pink);}
+.sb .sl{font-size:7px;color:#555;margin-top:2px;}
+
+.i-cta { padding:16px 18px 24px; display:flex; flex-direction:column; gap:10px; }
+
+.btn-lime {
+  background:var(--lime); color:#000;
+  border:none; border-radius:50px; padding:16px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:18px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+  cursor:pointer; text-align:center; transition:all .2s;
+  -webkit-tap-highlight-color:transparent;
+}
+.btn-lime:active { transform:scale(0.97); }
+
+.btn-outline {
+  background:transparent; color:#555;
+  border:1px solid #222; border-radius:50px; padding:14px;
+  font-family:'Space Mono',monospace; font-size:11px;
+  letter-spacing:.08em; text-transform:uppercase; cursor:pointer; text-align:center;
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* ════════════════════════════
+   SCREEN 3 — EXPERIMENT
+════════════════════════════ */
+#s3 { background:var(--black); }
+
+.e-hdr {
+  background:rgba(13,13,13,0.98);
+  backdrop-filter:blur(8px);
+  padding:10px 16px;
+  display:flex; align-items:center; justify-content:space-between;
+  border-bottom:1px solid #1a1a1a;
+  position:sticky; top:0; z-index:20;
+}
+.e-title {
+  font-family:'Space Mono',monospace; font-size:10px;
+  color:var(--lime); letter-spacing:.12em; text-transform:uppercase;
+}
+.e-prog-wrap { display:flex; align-items:center; gap:6px; }
+.e-prog-bar { width:80px; height:3px; background:#222; border-radius:2px; overflow:hidden; }
+.e-prog-fill { height:100%; background:var(--lime); border-radius:2px; transition:width .3s; }
+.e-prog-txt { font-family:'Space Mono',monospace; font-size:10px; color:#555; }
+.e-timer {
+  font-family:'Space Mono',monospace; font-size:10px; color:#fff;
+  background:#1a1a1a; border:1px solid #2a2a2a;
+  padding:3px 8px; border-radius:6px;
+}
+
+/* Stats row */
+.e-stats { display:flex; border-bottom:1px solid #161616; }
+.e-stat {
+  flex:1; padding:9px 6px; text-align:center;
+  background:var(--black); border-right:1px solid #161616;
+}
+.e-stat:last-child { border-right:none; }
+.e-sv { font-family:'Barlow Condensed',sans-serif; font-size:20px; font-weight:700; color:#fff; }
+.e-sl { font-size:8px; color:var(--gray); text-transform:uppercase; letter-spacing:.1em; margin-top:1px; }
+
+/* Banner */
+.e-banner {
+  margin:10px 14px;
+  background:#161616; border:1px solid #222;
+  border-radius:10px; padding:9px 14px; text-align:center;
+  font-family:'Inter',sans-serif; font-size:12px; color:#888; font-weight:400; line-height:1.4;
+}
+.e-banner strong { color:var(--lime); }
+
+/* Legend */
+.e-legend {
+  display:flex; gap:12px; flex-wrap:wrap;
+  padding:0 14px 8px; justify-content:center;
+}
+.e-leg { display:flex; align-items:center; gap:5px; font-size:9px; color:#555;
+  font-family:'Space Mono',monospace; }
+.e-dot { width:8px; height:8px; border-radius:2px; }
+.e-dot.lg { background:var(--lime); }
+.e-dot.md { background:var(--cyan); }
+.e-dot.sm { background:var(--pink); }
+
+/* Play field */
+.play-field {
+  position:relative; width:100%; height:530px; flex-shrink:0;
+}
+
+/* START button */
+.start-zone { position:absolute; bottom:20px; left:50%; transform:translateX(-50%); z-index:5; }
+.start-btn {
+  width:72px; height:72px; border-radius:50%;
+  background:var(--lime); border:none;
+  color:#000; font-family:'Barlow Condensed',sans-serif;
+  font-size:13px; font-weight:900; letter-spacing:.06em; text-transform:uppercase;
+  cursor:pointer; text-align:center; line-height:1.2;
+  display:flex; align-items:center; justify-content:center; flex-direction:column;
+  transition:all .2s;
+  -webkit-tap-highlight-color:transparent;
+}
+.start-btn.pulsing { animation:sPulse 1.1s ease-in-out infinite; }
+@keyframes sPulse {
+  0%,100% { box-shadow:0 0 0 0 rgba(204,255,0,.6); }
+  50%      { box-shadow:0 0 0 16px rgba(204,255,0,0); }
+}
+.start-btn.active-s { background:#fff; box-shadow:0 0 24px rgba(255,255,255,0.3); animation:none; }
+
+/* TARGET buttons */
+.tgt {
+  position:absolute;
+  border-radius:12px;
+  background:#1a1a1a; border:1.5px solid #2a2a2a;
+  color:#fff; font-family:'Space Mono',monospace;
+  font-weight:700; text-transform:uppercase; letter-spacing:.04em;
+  cursor:pointer;
+  display:flex; align-items:center; justify-content:center; flex-direction:column;
+  text-align:center;
+  transition:all .15s;
+  opacity:0; pointer-events:none; user-select:none;
+  box-shadow:0 4px 12px rgba(0,0,0,0.4);
+  -webkit-tap-highlight-color:transparent;
+}
+.tgt.vis { opacity:1; pointer-events:all; animation:popIn .2s ease; }
+@keyframes popIn { 0%{transform:scale(0.7);opacity:0} 70%{transform:scale(1.05)} 100%{transform:scale(1);opacity:1} }
+
+.tgt.active-t {
+  background:#1e1e1e; border-color:var(--lime);
+  box-shadow:0 0 0 3px rgba(204,255,0,.2), 0 6px 20px rgba(0,0,0,.5);
+  animation:tGlow .8s ease-in-out infinite alternate;
+}
+@keyframes tGlow {
+  from { box-shadow:0 0 0 2px rgba(204,255,0,.2), 0 4px 16px rgba(0,0,0,.5); }
+  to   { box-shadow:0 0 0 5px rgba(204,255,0,.08), 0 8px 24px rgba(204,255,0,.15); }
+}
+.tgt.hit  { background:#0d2b0d !important; border-color:var(--green) !important; transform:scale(0.92); box-shadow:0 0 20px rgba(0,230,118,.35) !important; animation:none !important; }
+.tgt.missed { background:#2b0d0d !important; border-color:var(--red) !important; animation:shk .3s ease !important; }
+@keyframes shk { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+
+.tgt-sub { font-size:7px; opacity:.45; margin-top:2px; }
+.tgt-dist { font-size:7px; color:var(--lime); margin-top:1px; opacity:0; transition:opacity .2s; }
+.tgt.active-t .tgt-dist { opacity:1; }
+
+/* Sizes */
+.sz-lg { width:86px; height:86px; font-size:10px; border-radius:16px; }
+.sz-md { width:58px; height:58px; font-size:9px;  border-radius:11px; }
+.sz-sm { width:38px; height:38px; font-size:7px;  border-radius:8px; }
+
+/* Medium = cyan tint, small = pink tint */
+.sz-md { border-color:#1a3030; }
+.sz-sm { border-color:#2a1a20; }
+
+/* ════════════════════════════
+   SCREEN 4 — RESULTS
+════════════════════════════ */
+#s4 { background:var(--black); }
+
+.r-hdr { padding:28px 22px 18px; }
+.r-label {
+  font-family:'Space Mono',monospace; font-size:9px;
+  color:var(--gray2); letter-spacing:.18em; text-transform:uppercase;
+  margin-bottom:8px;
+}
+.r-title {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:80px; font-weight:900; line-height:.85; letter-spacing:-.02em; color:#fff;
+}
+
+/* Stat cards */
+.r-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:0 18px; margin-bottom:10px; }
+.r-card {
+  background:var(--card); border:1px solid #1e1e1e;
+  border-radius:14px; padding:16px 14px;
+}
+.r-val { font-family:'Barlow Condensed',sans-serif; font-size:40px; font-weight:900; line-height:1; }
+.r-val.lime   { color:var(--lime); }
+.r-val.cyan   { color:var(--cyan); }
+.r-val.pink   { color:var(--pink); }
+.r-val.orange { color:var(--orange); }
+.r-lbl { font-family:'Space Mono',monospace; font-size:8px; color:var(--gray); letter-spacing:.1em; text-transform:uppercase; margin-top:4px; }
+
+/* By type chart */
+.r-chart-wrap {
+  margin:0 18px 10px;
+  background:var(--card); border:1px solid #1e1e1e; border-radius:14px; padding:16px;
+}
+.r-chart-title { font-family:'Space Mono',monospace; font-size:9px; color:var(--gray); letter-spacing:.12em; text-transform:uppercase; margin-bottom:14px; }
+.r-bar-row { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.r-bar-row:last-child { margin-bottom:0; }
+.r-bar-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.r-bar-dot.lg { background:var(--lime); }
+.r-bar-dot.md { background:var(--cyan); }
+.r-bar-dot.sm { background:var(--pink); }
+.r-bar-lbl { font-family:'Inter',sans-serif; font-size:11px; color:#aaa; width:78px; flex-shrink:0; }
+.r-bar-track { flex:1; height:6px; background:#222; border-radius:3px; overflow:hidden; }
+.r-bar-fill { height:100%; border-radius:3px; transition:width .8s ease; min-width:8px; }
+.r-bar-fill.lg { background:var(--lime); }
+.r-bar-fill.md { background:var(--cyan); }
+.r-bar-fill.sm { background:var(--pink); }
+.r-bar-ms { font-family:'Space Mono',monospace; font-size:10px; color:var(--gray2); width:44px; text-align:right; flex-shrink:0; }
+
+/* Insight card */
+.r-insight {
+  margin:0 18px 16px;
+  background:var(--card); border:1px solid #2a2a1a;
+  border-radius:14px; padding:16px;
+}
+.r-insight-title {
+  display:flex; align-items:center; gap:6px;
+  font-family:'Space Mono',monospace; font-size:9px;
+  color:var(--lime); letter-spacing:.12em; text-transform:uppercase; margin-bottom:10px;
+}
+.r-insight p { font-family:'Inter',sans-serif; font-size:12px; color:#aaa; line-height:1.6; font-weight:300; }
+.r-insight strong { color:#fff; font-weight:500; }
+
+.r-cta { padding:0 18px 28px; display:flex; flex-direction:column; gap:10px; }
+
+/* Toast */
+.toast {
+  position:absolute; top:58px; left:50%; transform:translateX(-50%);
+  background:#1a1a1a; border:1px solid #333;
+  border-radius:8px; padding:7px 14px;
+  font-family:'Space Mono',monospace; font-size:10px; color:#fff;
+  z-index:100; opacity:0; transition:opacity .25s;
+  pointer-events:none; white-space:nowrap;
+}
+.toast.show { opacity:1; }
+.toast.fast { border-color:var(--lime); color:var(--lime); }
+.toast.slow { border-color:var(--pink); color:var(--pink); }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="phone-shell">
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <div class="dynamic-island"></div>
+      <div class="status-icons">
+        <svg width="16" height="11" viewBox="0 0 16 11"><rect x="0" y="7" width="3" height="4" rx=".5"/><rect x="4.5" y="4.5" width="3" height="6.5" rx=".5"/><rect x="9" y="2" width="3" height="9" rx=".5"/><rect x="13.5" y="0" width="2.5" height="11" rx=".5"/></svg>
+        <svg width="15" height="11" viewBox="0 0 15 11"><circle cx="7.5" cy="9.5" r="1" fill="#fff"/><path d="M4.8 7a3.8 3.8 0 015.4 0" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round"/><path d="M2.1 4.3a7.6 7.6 0 0110.8 0" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="20" height="11" rx="2.5" stroke="#fff" stroke-width="1" fill="none"/><rect x="1.5" y="1.5" width="16" height="9" rx="1.5" fill="#fff"/><path d="M22 4v4a2 2 0 000-4z" fill="#fff"/></svg>
+      </div>
+    </div>
+
+    <!-- App -->
+    <div class="app-viewport">
+      <div class="app-scroll" id="appScroll">
+
+        <div class="toast" id="toast"></div>
+
+        <!-- ── SCREEN 1: SPLASH ── -->
+        <div class="screen active" id="s1">
+
+          <!-- Decorative dots grid -->
+          <div class="dot-grid" id="dotGrid"></div>
+
+          <!-- Concentric circles -->
+          <div class="circles">
+            <div class="circle c3"></div>
+            <div class="circle c2"></div>
+            <div class="circle c1"></div>
+          </div>
+
+          <div style="position:relative;z-index:2;padding:28px 22px 24px;display:flex;flex-direction:column;height:100%;">
+            <div class="splash-badge">UX EXPERIMENT · 2026</div>
+            <h1 class="splash-h1">FITT'S<span class="lime">LAW</span></h1>
+            <p class="splash-desc">Speed &amp; accuracy study — how button size and distance affect your interaction time.</p>
+
+            <div style="flex:1;"></div>
+
+            <div class="formula-box">
+              <p class="f-eq">T = <span class="v">a</span> + <span class="v">b</span> · log<sub>2</sub>(<span class="v">2D/W</span>)</p>
+              <p class="f-desc">Movement time increases with distance and decreases with target width. Larger, closer buttons are faster to hit.</p>
+            </div>
+
+            <button class="splash-cta" onclick="goTo('s2')">BEGIN EXPERIMENT →</button>
+          </div>
+        </div>
+
+        <!-- ── SCREEN 2: INSTRUCTIONS ── -->
+        <div class="screen" id="s2">
+          <div class="i-hdr">
+            <button class="i-back" onclick="goTo('s1')">← BACK</button>
+            <h2 class="i-title">HOW IT<br>WORKS</h2>
+            <p class="i-sub">Read before you start the experiment</p>
+          </div>
+          <div class="i-body">
+            <div class="icard">
+              <h3>🎯 Objective</h3>
+              <p>Tap <strong style="color:#fff">START</strong>, then immediately tap the glowing target. Your reaction time &amp; accuracy are recorded for each of 8 trials.</p>
+            </div>
+            <div class="icard">
+              <h3>📐 Button Sizes</h3>
+              <div class="srow">
+                <div><div class="sb lg">L<span class="sl">86px</span></div><div style="font-size:8px;color:#444;text-align:center;margin-top:4px">Large ×3</div></div>
+                <div><div class="sb md">M<span class="sl">58px</span></div><div style="font-size:8px;color:#444;text-align:center;margin-top:4px">Med ×3</div></div>
+                <div><div class="sb sm">S<span class="sl">38px</span></div><div style="font-size:8px;color:#444;text-align:center;margin-top:4px">Small ×2</div></div>
+              </div>
+            </div>
+            <div class="icard">
+              <h3>📏 Fitts' Law Rules</h3>
+              <ul>
+                <li>Buttons closer to START → faster to reach</li>
+                <li>Larger buttons → easier to hit accurately</li>
+                <li>Small + far = the hardest combination</li>
+                <li>Large + near = the fastest combination</li>
+              </ul>
+            </div>
+            <div class="icard">
+              <h3>⚡ Tips</h3>
+              <ul>
+                <li>Hold phone naturally, use dominant thumb</li>
+                <li>Don't sacrifice accuracy for speed</li>
+                <li>8 trials total — give it your best!</li>
+              </ul>
+            </div>
+          </div>
+          <div class="i-cta">
+            <button class="btn-lime" onclick="startExp()">START EXPERIMENT →</button>
+            <button class="btn-outline" onclick="goTo('s1')">BACK TO HOME</button>
+          </div>
+        </div>
+
+        <!-- ── SCREEN 3: EXPERIMENT ── -->
+        <div class="screen" id="s3">
+          <div class="e-hdr">
+            <span class="e-title">FITTS' LAW</span>
+            <div class="e-prog-wrap">
+              <div class="e-prog-bar"><div class="e-prog-fill" id="ePF"></div></div>
+              <span class="e-prog-txt" id="ePT">0/8</span>
+            </div>
+            <div class="e-timer" id="eTimer">0.00s</div>
+          </div>
+
+          <div class="e-stats">
+            <div class="e-stat"><div class="e-sv" id="eHits">0</div><div class="e-sl">HITS</div></div>
+            <div class="e-stat"><div class="e-sv" id="eMiss">0</div><div class="e-sl">MISSES</div></div>
+            <div class="e-stat"><div class="e-sv" id="eAvg">—</div><div class="e-sl">AVG MS</div></div>
+            <div class="e-stat"><div class="e-sv" id="eBest">—</div><div class="e-sl">BEST MS</div></div>
+          </div>
+
+          <div class="e-banner" id="eBanner">Tap <strong>START</strong> to begin trial <span id="eTN">1</span></div>
+
+          <div class="e-legend">
+            <div class="e-leg"><div class="e-dot lg"></div>Large</div>
+            <div class="e-leg"><div class="e-dot md"></div>Medium</div>
+            <div class="e-leg"><div class="e-dot sm"></div>Small</div>
+          </div>
+
+          <div class="play-field" id="playField">
+            <div class="start-zone">
+              <button class="start-btn pulsing" id="startBtn" onclick="handleStart()">TAP<br>START</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SCREEN 4: RESULTS ── -->
+        <div class="screen" id="s4">
+          <div class="r-hdr">
+            <div class="r-label">FITTS LAW EXPERIMENT COMPLETE</div>
+            <div class="r-title">YOUR<br>RESULTS</div>
+          </div>
+
+          <div class="r-grid">
+            <div class="r-card">
+              <div class="r-val lime" id="rHits">—</div>
+              <div class="r-lbl">TOTAL HITS</div>
+            </div>
+            <div class="r-card">
+              <div class="r-val cyan" id="rAvg">—</div>
+              <div class="r-lbl">AVG TIME</div>
+            </div>
+            <div class="r-card">
+              <div class="r-val pink" id="rBest">—</div>
+              <div class="r-lbl">BEST HIT</div>
+            </div>
+            <div class="r-card">
+              <div class="r-val orange" id="rSlow">—</div>
+              <div class="r-lbl">SLOWEST HIT</div>
+            </div>
+          </div>
+
+          <div class="r-chart-wrap">
+            <div class="r-chart-title">BY BUTTON TYPE</div>
+            <div class="r-bar-row">
+              <div class="r-bar-dot lg"></div>
+              <div class="r-bar-lbl">Large (×3)</div>
+              <div class="r-bar-track"><div class="r-bar-fill lg" id="bLg" style="width:0%"></div></div>
+              <div class="r-bar-ms" id="bLgMs">—</div>
+            </div>
+            <div class="r-bar-row">
+              <div class="r-bar-dot md"></div>
+              <div class="r-bar-lbl">Medium (×3)</div>
+              <div class="r-bar-track"><div class="r-bar-fill md" id="bMd" style="width:0%"></div></div>
+              <div class="r-bar-ms" id="bMdMs">—</div>
+            </div>
+            <div class="r-bar-row">
+              <div class="r-bar-dot sm"></div>
+              <div class="r-bar-lbl">Small (×2)</div>
+              <div class="r-bar-track"><div class="r-bar-fill sm" id="bSm" style="width:0%"></div></div>
+              <div class="r-bar-ms" id="bSmMs">—</div>
+            </div>
+          </div>
+
+          <div class="r-insight">
+            <div class="r-insight-title">✦ KEY INSIGHT</div>
+            <p id="insightTxt">Loading…</p>
+          </div>
+
+          <div class="r-cta">
+            <button class="btn-lime" onclick="startExp()">↺ TRY AGAIN</button>
+            <button class="btn-outline" onclick="goTo('s1')">HOME</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="home-ind"><div class="home-bar"></div></div>
+  </div>
+
+  <!-- Dots nav -->
+  <div class="nav-dots">
+    <div class="nd on"  id="nd0" onclick="goTo('s1')"></div>
+    <div class="nd"     id="nd1" onclick="goTo('s2')"></div>
+    <div class="nd"     id="nd2" onclick="startExp()"></div>
+    <div class="nd"     id="nd3"></div>
+  </div>
+</div>
+
+<script>
+/* ── BUILD DOT GRID ── */
+const dg = document.getElementById('dotGrid');
+for (let i=0;i<64;i++) { const s=document.createElement('span'); dg.appendChild(s); }
+
+/* ── NAV ── */
+const SCREENS = ['s1','s2','s3','s4'];
+function goTo(id) {
+  SCREENS.forEach((s,i)=>{
+    document.getElementById(s).classList.toggle('active', s===id);
+    const nd=document.getElementById('nd'+i);
+    if(nd) nd.classList.toggle('on', s===id);
+  });
+  document.getElementById('appScroll').scrollTop=0;
+}
+
+/* ── TRIALS ── */
+const TRIALS = [
+  {id:0,size:'large', label:'L1',topP:6,  leftP:8,  distance:'FAR'},
+  {id:1,size:'large', label:'L2',topP:14, leftP:68, distance:'FAR'},
+  {id:2,size:'large', label:'L3',topP:42, leftP:52, distance:'MID'},
+  {id:3,size:'medium',label:'M1',topP:55, leftP:4,  distance:'MID'},
+  {id:4,size:'medium',label:'M2',topP:24, leftP:28, distance:'MID'},
+  {id:5,size:'medium',label:'M3',topP:5,  leftP:46, distance:'FAR'},
+  {id:6,size:'small', label:'S1',topP:28, leftP:72, distance:'MID'},
+  {id:7,size:'small', label:'S2',topP:60, leftP:36, distance:'NEAR'},
+];
+const SZ = {large:'sz-lg',medium:'sz-md',small:'sz-sm'};
+
+let G = {phase:'idle',trial:0,t0:0,results:[],hits:0,misses:0,timer:null};
+
+/* ── BUILD TARGETS ── */
+function buildTargets() {
+  const field = document.getElementById('playField');
+  field.querySelectorAll('.tgt').forEach(e=>e.remove());
+  const fH = field.offsetHeight||530, fW = field.offsetWidth||358;
+  const szPx = {large:86,medium:58,small:38};
+  TRIALS.forEach(t=>{
+    const btn = document.createElement('button');
+    btn.className = `tgt ${SZ[t.size]}`;
+    btn.id = 'tgt-'+t.id;
+    const sz=szPx[t.size];
+    btn.style.top  = Math.min(t.topP/100*fH,  fH-sz-32)+'px';
+    btn.style.left = Math.min(t.leftP/100*fW, fW-sz-6)+'px';
+    btn.innerHTML  = `${t.label}<span class="tgt-sub">${t.size.toUpperCase()}</span><span class="tgt-dist">${t.distance}</span>`;
+    btn.addEventListener('click',()=>handleTarget(t.id));
+    field.appendChild(btn);
+  });
+}
+
+/* ── START EXP ── */
+function startExp() {
+  G={phase:'awaitStart',trial:0,t0:0,results:[],hits:0,misses:0,timer:null};
+  goTo('s3');
+  setTimeout(()=>{ buildTargets(); updateUI(); },120);
+}
+
+/* ── START CLICK ── */
+function handleStart() {
+  if(G.phase!=='awaitStart') return;
+  G.phase='awaitTarget'; G.t0=performance.now();
+  const sb=document.getElementById('startBtn');
+  sb.classList.remove('pulsing'); sb.classList.add('active-s');
+  const t=TRIALS[G.trial];
+  document.getElementById('tgt-'+t.id).classList.add('vis','active-t');
+  document.getElementById('eBanner').innerHTML=`Hit the <strong>${t.size.toUpperCase()}</strong> button!`;
+  clearInterval(G.timer);
+  G.timer=setInterval(()=>{
+    document.getElementById('eTimer').textContent=((performance.now()-G.t0)/1000).toFixed(2)+'s';
+  },50);
+}
+
+/* ── TARGET CLICK ── */
+function handleTarget(id) {
+  if(G.phase!=='awaitTarget') return;
+  const t=TRIALS[G.trial];
+  recordResult(t, t.id===id);
+}
+
+function recordResult(t,hit) {
+  clearInterval(G.timer);
+  const elapsed=performance.now()-G.t0;
+  const el=document.getElementById('tgt-'+t.id);
+  G.results.push({size:t.size,distance:t.distance,label:t.label,time:elapsed,hit});
+  if(hit){
+    G.hits++;
+    el.classList.remove('active-t'); el.classList.add('hit');
+    showToast(elapsed<600?'⚡ FAST! '+Math.round(elapsed)+'ms':'✓ HIT — '+Math.round(elapsed)+'ms',elapsed<600?'fast':'');
+  } else {
+    G.misses++;
+    el.classList.add('missed');
+    showToast('✗ MISS — tap the glowing one!','slow');
+    setTimeout(()=>el.classList.remove('missed'),400);
+    resetRound(); return;
+  }
+  updateStats(); G.trial++;
+  if(G.trial>=TRIALS.length) setTimeout(showResults,600);
+  else setTimeout(resetRound,450);
+}
+
+function resetRound() {
+  document.querySelectorAll('.tgt').forEach(e=>e.classList.remove('vis','active-t','hit'));
+  const sb=document.getElementById('startBtn');
+  sb.classList.remove('active-s'); sb.classList.add('pulsing');
+  G.phase='awaitStart';
+  document.getElementById('eTimer').textContent='0.00s';
+  document.getElementById('eBanner').innerHTML=`Tap <strong>START</strong> to begin trial <span id="eTN">${G.trial+1}</span>`;
+  updateUI();
+}
+
+function updateUI() {
+  document.getElementById('ePF').style.width=(G.trial/8*100)+'%';
+  document.getElementById('ePT').textContent=G.trial+'/8';
+}
+function updateStats() {
+  const times=G.results.filter(r=>r.hit).map(r=>r.time);
+  const avg=times.length?Math.round(times.reduce((a,b)=>a+b,0)/times.length):null;
+  const best=times.length?Math.round(Math.min(...times)):null;
+  document.getElementById('eHits').textContent=G.hits;
+  document.getElementById('eMiss').textContent=G.misses;
+  document.getElementById('eAvg').textContent=avg||'—';
+  document.getElementById('eBest').textContent=best||'—';
+}
+function showToast(msg,cls) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast show'+(cls?' '+cls:'');
+  setTimeout(()=>t.className='toast',1500);
+}
+
+/* ── RESULTS ── */
+function showResults() {
+  goTo('s4');
+  const R=G.results, hits=R.filter(r=>r.hit);
+  const avg  = hits.length?Math.round(hits.reduce((a,b)=>a+b.time,0)/hits.length):0;
+  const best = hits.length?Math.round(Math.min(...hits.map(r=>r.time))):0;
+  const slow = hits.length?Math.round(Math.max(...hits.map(r=>r.time))):0;
+
+  document.getElementById('rHits').textContent = G.hits;
+  document.getElementById('rAvg').textContent  = avg+'MS';
+  document.getElementById('rBest').textContent = best+'MS';
+  document.getElementById('rSlow').textContent = slow+'MS';
+
+  const bySize={large:[],medium:[],small:[]};
+  hits.forEach(r=>bySize[r.size].push(r.time));
+  const aLg=av(bySize.large), aMd=av(bySize.medium), aSm=av(bySize.small);
+  const mx=Math.max(aLg,aMd,aSm,1);
+
+  setTimeout(()=>{
+    setBar('bLg','bLgMs',aLg,mx);
+    setBar('bMd','bMdMs',aMd,mx);
+    setBar('bSm','bSmMs',aSm,mx);
+  },350);
+
+  const acc=Math.round(G.hits/R.length*100);
+  let txt='';
+  if(aSm>aLg*1.08) txt=`Your data confirms Fitt's Law: <strong>larger targets were easier and faster to tap</strong>. Large buttons averaged ${aLg}ms vs ${aSm}ms for small — that's ${Math.round((aSm-aLg)/aLg*100)}% slower. Button size significantly impacts interaction speed.`;
+  else txt=`Your reaction times were consistent across sizes — impressive focus! Fitts' Law predicts <strong>larger, closer buttons are measurably faster</strong>. Try again at top speed to see the size effect amplify.`;
+  document.getElementById('insightTxt').innerHTML=txt;
+}
+
+function av(arr){return arr.length?Math.round(arr.reduce((a,b)=>a+b,0)/arr.length):0;}
+function setBar(fillId,msId,val,max){
+  document.getElementById(fillId).style.width = val?Math.max(val/max*100,8)+'%':'0%';
+  document.getElementById(msId).textContent   = val?val+'ms':'—';
+}
+</script>
+</body>
+</html>

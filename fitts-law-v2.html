@@ -1,0 +1,1695 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=390, initial-scale=1.0">
+  <title>Fitt's Law — Interactive Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #080810;
+      --surface: #111120;
+      --surface2: #1a1a2e;
+      --border: rgba(255, 255, 255, 0.07);
+      --accent: #e8ff47;
+      /* Neon Yellow — Large buttons */
+      --blue: #00d4ff;
+      /* Cyan — Medium buttons */
+      --pink: #ff6b9d;
+      /* Pink — Small buttons */
+      --orange: #ff6b35;
+      --text: #f0f0f8;
+      --muted: #4a4a6a;
+      --muted2: #7a7a9a;
+
+      /* Button sizes (px) */
+      --sz-large: 90px;
+      --sz-medium: 60px;
+      --sz-small: 38px;
+
+      /* Typography */
+      --font-display: 'Bebas Neue', sans-serif;
+      --font-mono: 'Space Mono', monospace;
+      --font-body: 'DM Sans', sans-serif;
+    }
+
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #0d0d1a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: var(--font-body);
+      padding: 24px 0;
+    }
+
+    /* ═══════════════════════════════════════════════════
+   PHONE SHELL
+═══════════════════════════════════════════════════ */
+    .phone {
+      width: 390px;
+      height: 844px;
+      background: var(--bg);
+      border-radius: 50px;
+      overflow: hidden;
+      position: relative;
+      box-shadow:
+        0 0 0 1px #222240,
+        0 0 0 3px #0d0d20,
+        0 30px 80px rgba(0, 0, 0, 0.7),
+        0 0 80px rgba(232, 255, 71, 0.04);
+      flex-shrink: 0;
+    }
+
+    /* Notch */
+    .phone::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 34px;
+      background: #080810;
+      border-radius: 0 0 24px 24px;
+      z-index: 999;
+    }
+
+    /* ═══════════════════════════════════════════════════
+   SCREEN SYSTEM
+═══════════════════════════════════════════════════ */
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      transition: opacity 0.35s ease, transform 0.35s ease;
+      overflow: hidden;
+    }
+
+    .screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(30px);
+    }
+
+    /* Status bar spacer */
+    .status-bar {
+      height: 44px;
+      flex-shrink: 0;
+    }
+
+    /* ═══════════════════════════════════════════════════
+   SHARED COMPONENTS
+═══════════════════════════════════════════════════ */
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(232, 255, 71, 0.08);
+      border: 1px solid rgba(232, 255, 71, 0.25);
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      padding: 5px 11px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .tag::before {
+      content: '';
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: blink 1.4s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0.2
+      }
+    }
+
+    .primary-btn {
+      width: 100%;
+      height: 58px;
+      background: var(--accent);
+      color: #080810;
+      border: none;
+      border-radius: 16px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .primary-btn::after {
+      content: '→';
+      margin-left: 10px;
+      font-size: 16px;
+    }
+
+    .primary-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 35px rgba(232, 255, 71, 0.3);
+    }
+
+    .primary-btn:active {
+      transform: scale(0.97);
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 0 28px;
+    }
+
+    /* ═══════════════════════════════════════════════════
+   SCREEN 1 — TITLE
+═══════════════════════════════════════════════════ */
+    #s1 {
+      background: var(--bg);
+      justify-content: space-between;
+      padding-bottom: 44px;
+    }
+
+    .s1-top {
+      padding: 0 28px;
+    }
+
+    .s1-headline {
+      font-family: var(--font-display);
+      font-size: 96px;
+      line-height: 0.88;
+      color: var(--text);
+      letter-spacing: 1px;
+      margin: 20px 0;
+    }
+
+    .s1-headline em {
+      color: var(--accent);
+      font-style: normal;
+      display: block;
+    }
+
+    .s1-desc {
+      font-size: 13px;
+      color: var(--muted2);
+      line-height: 1.65;
+      max-width: 240px;
+      font-weight: 300;
+      margin-top: 14px;
+    }
+
+    /* Decorative graphic */
+    .s1-graphic {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      margin: 20px 28px;
+    }
+
+    .s1-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .s1-ring:nth-child(1) {
+      width: 260px;
+      height: 260px;
+      border-color: rgba(232, 255, 71, 0.08);
+    }
+
+    .s1-ring:nth-child(2) {
+      width: 180px;
+      height: 180px;
+      border-color: rgba(0, 212, 255, 0.10);
+    }
+
+    .s1-ring:nth-child(3) {
+      width: 110px;
+      height: 110px;
+      border-color: rgba(255, 107, 157, 0.12);
+    }
+
+    .s1-ring:nth-child(4) {
+      width: 50px;
+      height: 50px;
+      background: rgba(232, 255, 71, 0.07);
+      border-color: transparent;
+    }
+
+    .s1-formula {
+      position: absolute;
+      bottom: 12px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: rgba(232, 255, 71, 0.4);
+      letter-spacing: 0.06em;
+    }
+
+    .s1-bottom {
+      padding: 0 28px;
+    }
+
+    .s1-chips {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .chip {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 8px;
+      text-align: center;
+    }
+
+    .chip-val {
+      font-family: var(--font-display);
+      font-size: 26px;
+      line-height: 1;
+    }
+
+    .chip-lbl {
+      font-size: 9px;
+      color: var(--muted2);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-family: var(--font-mono);
+      margin-top: 3px;
+      display: block;
+    }
+
+    /* ═══════════════════════════════════════════════════
+   SCREEN 2 — INSTRUCTIONS
+═══════════════════════════════════════════════════ */
+    #s2 {
+      background: var(--bg);
+      padding-bottom: 40px;
+      overflow-y: auto;
+    }
+
+    .s2-header {
+      padding: 8px 28px 20px;
+      flex-shrink: 0;
+    }
+
+    .s2-title {
+      font-family: var(--font-display);
+      font-size: 52px;
+      line-height: 0.95;
+      color: var(--text);
+      margin-top: 12px;
+    }
+
+    .s2-title em {
+      color: var(--accent);
+      font-style: normal;
+    }
+
+    .s2-sub {
+      font-size: 12px;
+      color: var(--muted2);
+      margin-top: 8px;
+      line-height: 1.5;
+      font-weight: 300;
+    }
+
+    .s2-section {
+      padding: 0 28px;
+      margin-bottom: 20px;
+    }
+
+    .section-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--muted);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* Button size showcase */
+    .size-showcase {
+      background: var(--surface);
+      border-radius: 18px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .showcase-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .showcase-circle {
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .sc-large {
+      width: 58px;
+      height: 58px;
+      font-size: 10px;
+      background: rgba(232, 255, 71, 0.12);
+      color: var(--accent);
+      border: 2px solid rgba(232, 255, 71, 0.35);
+    }
+
+    .sc-medium {
+      width: 42px;
+      height: 42px;
+      font-size: 9px;
+      background: rgba(0, 212, 255, 0.12);
+      color: var(--blue);
+      border: 2px solid rgba(0, 212, 255, 0.35);
+    }
+
+    .sc-small {
+      width: 28px;
+      height: 28px;
+      font-size: 8px;
+      background: rgba(255, 107, 157, 0.12);
+      color: var(--pink);
+      border: 2px solid rgba(255, 107, 157, 0.35);
+    }
+
+    .showcase-info {
+      flex: 1;
+    }
+
+    .showcase-name {
+      font-size: 13px;
+      color: var(--text);
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .showcase-desc {
+      font-size: 11px;
+      color: var(--muted2);
+      font-weight: 300;
+    }
+
+    .showcase-count {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--muted);
+      background: var(--surface2);
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    /* Principles */
+    .principles-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .principle-card {
+      background: var(--surface);
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      border-left: 3px solid transparent;
+    }
+
+    .principle-card.p1 {
+      border-left-color: var(--accent);
+    }
+
+    .principle-card.p2 {
+      border-left-color: var(--blue);
+    }
+
+    .principle-card.p3 {
+      border-left-color: var(--pink);
+    }
+
+    .p-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .p-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+
+    .p-desc {
+      font-size: 11px;
+      color: var(--muted2);
+      line-height: 1.5;
+      font-weight: 300;
+    }
+
+    /* Tips */
+    .tips-box {
+      background: rgba(232, 255, 71, 0.05);
+      border: 1px solid rgba(232, 255, 71, 0.15);
+      border-radius: 16px;
+      padding: 16px 18px;
+    }
+
+    .tip-item {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: var(--muted2);
+      line-height: 1.4;
+    }
+
+    .tip-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .tip-num {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--accent);
+      background: rgba(232, 255, 71, 0.1);
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-weight: 700;
+    }
+
+    .s2-bottom {
+      padding: 0 28px;
+    }
+
+    /* Objective banner */
+    .objective-banner {
+      background: var(--surface2);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .obj-icon {
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .obj-text {
+      font-size: 12px;
+      color: var(--text);
+      line-height: 1.5;
+      font-weight: 400;
+    }
+
+    .obj-text strong {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* ═══════════════════════════════════════════════════
+   SCREEN 3 — EXPERIMENT ARENA
+═══════════════════════════════════════════════════ */
+    #s3 {
+      background: var(--bg);
+    }
+
+    .exp-header {
+      padding: 8px 22px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .exp-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+
+    .scoreboard {
+      display: flex;
+      gap: 8px;
+    }
+
+    .score-pill {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 5px 12px;
+      text-align: center;
+    }
+
+    .score-val {
+      font-family: var(--font-display);
+      font-size: 20px;
+      color: var(--accent);
+      line-height: 1;
+      display: block;
+    }
+
+    .score-lbl {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+
+    .progress-track {
+      height: 2px;
+      background: var(--surface2);
+      margin: 0 22px 4px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--blue));
+      border-radius: 2px;
+      transition: width 0.4s ease;
+      width: 0%;
+    }
+
+    .exp-legend {
+      display: flex;
+      gap: 10px;
+      padding: 0 22px 6px;
+      flex-shrink: 0;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 9px;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      letter-spacing: 0.06em;
+    }
+
+    .legend-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+
+    /* ARENA — the tap zone */
+    .arena {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Experiment buttons */
+    .exp-btn {
+      position: absolute;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      line-height: 1.2;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s, transform 0.12s, box-shadow 0.2s;
+      letter-spacing: 0.04em;
+    }
+
+    .exp-btn.visible {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .exp-btn.target {
+      animation: ring-pulse 1s ease-in-out infinite;
+    }
+
+    .exp-btn:active {
+      transform: scale(0.88) !important;
+    }
+
+    .exp-btn.hit {
+      animation: btn-hit 0.28s ease forwards;
+    }
+
+    .btn-large {
+      width: var(--sz-large);
+      height: var(--sz-large);
+      background: rgba(232, 255, 71, 0.1);
+      color: var(--accent);
+      border: 2px solid rgba(232, 255, 71, 0.3);
+    }
+
+    .btn-medium {
+      width: var(--sz-medium);
+      height: var(--sz-medium);
+      background: rgba(0, 212, 255, 0.1);
+      color: var(--blue);
+      border: 2px solid rgba(0, 212, 255, 0.3);
+    }
+
+    .btn-small {
+      width: var(--sz-small);
+      height: var(--sz-small);
+      background: rgba(255, 107, 157, 0.1);
+      color: var(--pink);
+      border: 2px solid rgba(255, 107, 157, 0.3);
+    }
+
+    .btn-large.target {
+      border-color: var(--accent);
+      box-shadow: 0 0 24px rgba(232, 255, 71, 0.25);
+    }
+
+    .btn-medium.target {
+      border-color: var(--blue);
+      box-shadow: 0 0 20px rgba(0, 212, 255, 0.25);
+    }
+
+    .btn-small.target {
+      border-color: var(--pink);
+      box-shadow: 0 0 16px rgba(255, 107, 157, 0.25);
+    }
+
+    @keyframes ring-pulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 currentColor;
+      }
+
+      50% {
+        box-shadow: 0 0 0 8px transparent;
+      }
+    }
+
+    .btn-large.target {
+      animation: ring-pulse-y 1s ease-in-out infinite;
+    }
+
+    .btn-medium.target {
+      animation: ring-pulse-b 1s ease-in-out infinite;
+    }
+
+    .btn-small.target {
+      animation: ring-pulse-p 1s ease-in-out infinite;
+    }
+
+    @keyframes ring-pulse-y {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(232, 255, 71, 0.4), 0 0 24px rgba(232, 255, 71, 0.2);
+      }
+
+      50% {
+        box-shadow: 0 0 0 10px rgba(232, 255, 71, 0), 0 0 24px rgba(232, 255, 71, 0.2);
+      }
+    }
+
+    @keyframes ring-pulse-b {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.4), 0 0 20px rgba(0, 212, 255, 0.2);
+      }
+
+      50% {
+        box-shadow: 0 0 0 8px rgba(0, 212, 255, 0), 0 0 20px rgba(0, 212, 255, 0.2);
+      }
+    }
+
+    @keyframes ring-pulse-p {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(255, 107, 157, 0.4), 0 0 16px rgba(255, 107, 157, 0.2);
+      }
+
+      50% {
+        box-shadow: 0 0 0 6px rgba(255, 107, 157, 0), 0 0 16px rgba(255, 107, 157, 0.2);
+      }
+    }
+
+    @keyframes btn-hit {
+      0% {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      50% {
+        transform: scale(1.4);
+        opacity: 0.4;
+      }
+
+      100% {
+        transform: scale(0);
+        opacity: 0;
+      }
+    }
+
+    /* Instruction toast */
+    .toast {
+      position: absolute;
+      bottom: 132px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(26, 26, 46, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(8px);
+      padding: 9px 16px;
+      border-radius: 10px;
+      font-size: 10px;
+      color: var(--muted2);
+      white-space: nowrap;
+      z-index: 5;
+      font-family: var(--font-mono);
+      letter-spacing: 0.06em;
+      pointer-events: none;
+    }
+
+    .toast::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 10px;
+      height: 5px;
+      background: rgba(26, 26, 46, 0.95);
+      clip-path: polygon(0 0, 100% 0, 50% 100%);
+    }
+
+    /* Anchor / START button */
+    .anchor-btn {
+      position: absolute;
+      bottom: 38px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 72px;
+      height: 72px;
+      background: var(--accent);
+      color: #080810;
+      border: none;
+      border-radius: 50%;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      line-height: 1.3;
+      z-index: 10;
+      transition: transform 0.15s, box-shadow 0.2s;
+    }
+
+    .anchor-btn:hover {
+      transform: translateX(-50%) scale(1.05);
+      box-shadow: 0 0 28px rgba(232, 255, 71, 0.45);
+    }
+
+    .anchor-btn:active {
+      transform: translateX(-50%) scale(0.93);
+    }
+
+    /* Ripple effect */
+    .ripple {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 50;
+      animation: ripple-expand 0.55s ease-out forwards;
+    }
+
+    @keyframes ripple-expand {
+      to {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
+
+    /* Time badge */
+    .time-badge {
+      position: absolute;
+      background: var(--accent);
+      color: #080810;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 20px;
+      pointer-events: none;
+      z-index: 100;
+      animation: badge-rise 0.85s ease forwards;
+    }
+
+    @keyframes badge-rise {
+      0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translateY(-55px) scale(0.75);
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════
+   SCREEN 4 — RESULTS
+═══════════════════════════════════════════════════ */
+    #s4 {
+      background: var(--bg);
+      padding: 0 26px 40px;
+      overflow-y: auto;
+    }
+
+    .results-hero {
+      padding-top: 12px;
+      margin-bottom: 24px;
+    }
+
+    .results-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--muted);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .results-headline {
+      font-family: var(--font-display);
+      font-size: 64px;
+      line-height: 0.92;
+      color: var(--text);
+    }
+
+    .results-headline em {
+      color: var(--accent);
+      font-style: normal;
+    }
+
+    /* Stat grid */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px 14px;
+    }
+
+    .stat-card.wide {
+      grid-column: 1 / -1;
+    }
+
+    .stat-val {
+      font-family: var(--font-display);
+      font-size: 38px;
+      line-height: 1;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .stat-lbl {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--muted2);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    /* Breakdown bars */
+    .breakdown-heading {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--muted);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .breakdown-heading::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .breakdown-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .br-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .br-label {
+      font-size: 11px;
+      color: var(--text);
+      width: 72px;
+      flex-shrink: 0;
+      font-weight: 500;
+    }
+
+    .br-track {
+      flex: 1;
+      height: 8px;
+      background: var(--surface2);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .br-fill {
+      height: 100%;
+      border-radius: 4px;
+      width: 0%;
+      transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .br-time {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--muted2);
+      width: 52px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* Insight card */
+    .insight-card {
+      background: rgba(232, 255, 71, 0.05);
+      border: 1px solid rgba(232, 255, 71, 0.18);
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+
+    .insight-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--accent);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .insight-eyebrow::before {
+      content: '✦';
+      font-size: 10px;
+    }
+
+    .insight-text {
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.65;
+      font-weight: 300;
+    }
+
+    .insight-text strong {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .retry-btn {
+      width: 100%;
+      height: 54px;
+      background: var(--accent);
+      color: #080810;
+      border: none;
+      border-radius: 14px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.2s;
+    }
+
+    .retry-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(232, 255, 71, 0.3);
+    }
+
+    .retry-btn:active {
+      transform: scale(0.97);
+    }
+
+    /* ═══════════════════════════════════════════════════
+   ANIMATIONS — Entry stagger
+═══════════════════════════════════════════════════ */
+    @keyframes fade-up {
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-in {
+      animation: fade-up 0.5s ease forwards;
+      opacity: 0;
+    }
+
+    .delay-1 {
+      animation-delay: 0.1s;
+    }
+
+    .delay-2 {
+      animation-delay: 0.2s;
+    }
+
+    .delay-3 {
+      animation-delay: 0.3s;
+    }
+
+    .delay-4 {
+      animation-delay: 0.4s;
+    }
+
+    .delay-5 {
+      animation-delay: 0.5s;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="phone">
+
+    <!-- ████████████████████ SCREEN 1 — TITLE ████████████████████ -->
+    <div class="screen" id="s1">
+      <div class="status-bar"></div>
+
+      <div class="s1-top animate-in">
+        <div class="tag">UX RESEARCH · 2026</div>
+        <div class="s1-headline">FITT'S<em>LAW</em></div>
+        <p class="s1-desc">A hands-on experiment testing how button size and distance affect your tap speed and
+          accuracy.</p>
+      </div>
+
+      <div class="s1-graphic animate-in delay-2">
+        <div class="s1-ring"></div>
+        <div class="s1-ring"></div>
+        <div class="s1-ring"></div>
+        <div class="s1-ring"></div>
+        <div class="s1-formula">T = a + b · log₂(2D/W)</div>
+      </div>
+
+      <div class="s1-bottom animate-in delay-3">
+        <div class="s1-chips">
+          <div class="chip">
+            <div class="chip-val" style="color:var(--accent)">8</div>
+            <span class="chip-lbl">BUTTONS</span>
+          </div>
+          <div class="chip">
+            <div class="chip-val" style="color:var(--blue)">3</div>
+            <span class="chip-lbl">SIZES</span>
+          </div>
+          <div class="chip">
+            <div class="chip-val" style="color:var(--pink)">∞</div>
+            <span class="chip-lbl">TRIES</span>
+          </div>
+        </div>
+        <button class="primary-btn animate-in delay-4" onclick="goTo('s2')">BEGIN EXPERIMENT</button>
+      </div>
+    </div>
+
+    <!-- ████████████████████ SCREEN 2 — INSTRUCTIONS ████████████████████ -->
+    <div class="screen hidden" id="s2">
+      <div class="status-bar"></div>
+
+      <div class="s2-header">
+        <div class="tag">INSTRUCTIONS</div>
+        <div class="s2-title">HOW IT<em>WORKS</em></div>
+        <p class="s2-sub">Understand the experiment before you begin.</p>
+      </div>
+
+      <div style="flex:1; overflow-y:auto; padding-bottom: 20px;">
+
+        <div class="s2-section">
+          <div class="section-label">Objective</div>
+          <div class="objective-banner">
+            <div class="obj-icon">🎯</div>
+            <div class="obj-text">
+              Tap the <strong>highlighted button</strong>, then return to <strong>START</strong>. Repeat for all 8
+              targets. Your reaction times are recorded automatically.
+            </div>
+          </div>
+        </div>
+
+        <div class="divider" style="margin-bottom:20px;"></div>
+
+        <div class="s2-section">
+          <div class="section-label">Button Sizes</div>
+          <div class="size-showcase">
+
+            <div class="showcase-row">
+              <div class="showcase-circle sc-large">L</div>
+              <div class="showcase-info">
+                <div class="showcase-name" style="color:var(--accent)">Large Buttons</div>
+                <div class="showcase-desc">90px — Easy to hit, fast response</div>
+              </div>
+              <div class="showcase-count">×3</div>
+            </div>
+
+            <div class="showcase-row">
+              <div class="showcase-circle sc-medium">M</div>
+              <div class="showcase-info">
+                <div class="showcase-name" style="color:var(--blue)">Medium Buttons</div>
+                <div class="showcase-desc">60px — Menu-sized, moderate speed</div>
+              </div>
+              <div class="showcase-count">×3</div>
+            </div>
+
+            <div class="showcase-row">
+              <div class="showcase-circle sc-small">S</div>
+              <div class="showcase-info">
+                <div class="showcase-name" style="color:var(--pink)">Small Buttons</div>
+                <div class="showcase-desc">38px — Harder to hit, slower</div>
+              </div>
+              <div class="showcase-count">×2</div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="divider" style="margin-bottom:20px;"></div>
+
+        <div class="s2-section">
+          <div class="section-label">Fitt's Law Principles</div>
+          <div class="principles-list">
+
+            <div class="principle-card p1">
+              <div class="p-icon">📏</div>
+              <div>
+                <div class="p-title">Size matters</div>
+                <div class="p-desc">Larger buttons are faster and easier to tap. Doubling button size noticeably reduces
+                  movement time.</div>
+              </div>
+            </div>
+
+            <div class="principle-card p2">
+              <div class="p-icon">↔️</div>
+              <div>
+                <div class="p-title">Distance costs time</div>
+                <div class="p-desc">Buttons closer to your starting position are reached faster. Each extra inch of
+                  distance adds measurable delay.</div>
+              </div>
+            </div>
+
+            <div class="principle-card p3">
+              <div class="p-icon">⚖️</div>
+              <div>
+                <div class="p-title">The index of difficulty</div>
+                <div class="p-desc">T = a + b·log₂(2D/W) — time scales logarithmically with distance-to-size ratio.
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="divider" style="margin-bottom:20px;"></div>
+
+        <div class="s2-section">
+          <div class="section-label">Tips</div>
+          <div class="tips-box">
+            <div class="tip-item">
+              <div class="tip-num">1</div>
+              <div>Tap <strong style="color:var(--text)">START</strong> first — then immediately tap the highlighted
+                button as fast as you can.</div>
+            </div>
+            <div class="tip-item">
+              <div class="tip-num">2</div>
+              <div>Always return to <strong style="color:var(--text)">START</strong> between each tap — this resets the
+                distance measurement.</div>
+            </div>
+            <div class="tip-item">
+              <div class="tip-num">3</div>
+              <div>Prioritize <strong style="color:var(--text)">accuracy</strong> — hitting the wrong button won't
+                count.</div>
+            </div>
+            <div class="tip-item">
+              <div class="tip-num">4</div>
+              <div>Notice how <strong style="color:var(--accent)">large yellow</strong> buttons feel instinctively
+                easier than <strong style="color:var(--pink)">small pink</strong> ones.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div style="padding:12px 28px 0; flex-shrink:0;">
+        <button class="primary-btn" onclick="startExperiment()">START EXPERIMENT</button>
+      </div>
+    </div>
+
+    <!-- ████████████████████ SCREEN 3 — EXPERIMENT ████████████████████ -->
+    <div class="screen hidden" id="s3">
+      <div class="status-bar"></div>
+
+      <div class="exp-header">
+        <div class="exp-label">FITTS LAW / TRIAL</div>
+        <div class="scoreboard">
+          <div class="score-pill">
+            <span class="score-val" id="hit-count">0</span>
+            <span class="score-lbl">HITS</span>
+          </div>
+          <div class="score-pill">
+            <span class="score-val" id="avg-time">—</span>
+            <span class="score-lbl">AVG MS</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+
+      <div class="exp-legend">
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--accent)"></div>LARGE
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--blue)"></div>MEDIUM
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--pink)"></div>SMALL
+        </div>
+      </div>
+
+      <div class="arena" id="arena">
+        <div class="toast" id="toast">TAP [START] TO BEGIN</div>
+      </div>
+
+      <button class="anchor-btn" id="anchor-btn" onclick="onAnchorClick()">
+        START<br>HERE
+      </button>
+    </div>
+
+    <!-- ████████████████████ SCREEN 4 — RESULTS ████████████████████ -->
+    <div class="screen hidden" id="s4">
+      <div class="status-bar"></div>
+
+      <div class="results-hero">
+        <div class="results-eyebrow">EXPERIMENT COMPLETE</div>
+        <div class="results-headline">YOUR<em>DATA</em></div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <span class="stat-val" style="color:var(--accent)" id="r-total">0</span>
+          <span class="stat-lbl">Total Hits</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-val" style="color:var(--blue)" id="r-avg">—</span>
+          <span class="stat-lbl">Avg Time</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-val" style="color:var(--accent)" id="r-best">—</span>
+          <span class="stat-lbl">Best Hit</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-val" style="color:var(--orange)" id="r-worst">—</span>
+          <span class="stat-lbl">Slowest Hit</span>
+        </div>
+      </div>
+
+      <div class="stat-card wide" style="margin-bottom:16px;">
+        <div class="breakdown-heading">By Button Type</div>
+
+        <div class="breakdown-row">
+          <div class="br-dot" style="background:var(--accent)"></div>
+          <div class="br-label">Large ×3</div>
+          <div class="br-track">
+            <div class="br-fill" style="background:var(--accent)" id="bar-L"></div>
+          </div>
+          <div class="br-time" id="t-L">—</div>
+        </div>
+        <div class="breakdown-row">
+          <div class="br-dot" style="background:var(--blue)"></div>
+          <div class="br-label">Medium ×3</div>
+          <div class="br-track">
+            <div class="br-fill" style="background:var(--blue)" id="bar-M"></div>
+          </div>
+          <div class="br-time" id="t-M">—</div>
+        </div>
+        <div class="breakdown-row">
+          <div class="br-dot" style="background:var(--pink)"></div>
+          <div class="br-label">Small ×2</div>
+          <div class="br-track">
+            <div class="br-fill" style="background:var(--pink)" id="bar-S"></div>
+          </div>
+          <div class="br-time" id="t-S">—</div>
+        </div>
+      </div>
+
+      <div class="insight-card">
+        <div class="insight-eyebrow">Key Insight</div>
+        <div class="insight-text" id="insight-text">Analyzing your results…</div>
+      </div>
+
+      <button class="retry-btn" onclick="resetToStart()">↺ TRY AGAIN</button>
+    </div>
+
+  </div><!-- /phone -->
+
+  <script>
+    /* ════════════════════════════════════════════
+       NAVIGATION
+    ════════════════════════════════════════════ */
+    function goTo(id) {
+      document.querySelectorAll('.screen').forEach(s => {
+        s.classList.add('hidden');
+      });
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    /* ════════════════════════════════════════════
+       BUTTON CONFIGURATION
+       Arena approx: 390×520px
+       Anchor at bottom-center ≈ (195, 520)
+    ════════════════════════════════════════════ */
+    const BTN_CONFIG = [
+      // LARGE (90px) — 3 buttons
+      { id: 'L1', type: 'large', xPct: 0.50, yPct: 0.08, label: 'L1' }, // near top-center
+      { id: 'L2', type: 'large', xPct: 0.14, yPct: 0.35, label: 'L2' }, // mid-left
+      { id: 'L3', type: 'large', xPct: 0.82, yPct: 0.22, label: 'L3' }, // upper-right
+
+      // MEDIUM (60px) — 3 buttons
+      { id: 'M1', type: 'medium', xPct: 0.78, yPct: 0.60, label: 'M1' }, // lower-right
+      { id: 'M2', type: 'medium', xPct: 0.22, yPct: 0.65, label: 'M2' }, // lower-left
+      { id: 'M3', type: 'medium', xPct: 0.55, yPct: 0.40, label: 'M3' }, // center-mid
+
+      // SMALL (38px) — 2 buttons
+      { id: 'S1', type: 'small', xPct: 0.08, yPct: 0.10, label: 'S1' }, // far top-left
+      { id: 'S2', type: 'small', xPct: 0.90, yPct: 0.76, label: 'S2' }, // far bottom-right
+    ];
+
+    const SZ = { large: 90, medium: 60, small: 38 };
+
+    let sequence = [];
+    let currentIdx = 0;
+    let startTime = 0;
+    let timings = { large: [], medium: [], small: [] };
+    let expState = 'idle'; // idle | wait-anchor | run
+
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]]; }
+      return a;
+    }
+
+    function avg(arr) {
+      return arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : null;
+    }
+
+    /* ════════════════════════════════════════════
+       START EXPERIMENT
+    ════════════════════════════════════════════ */
+    function startExperiment() {
+      goTo('s3');
+      initArena();
+    }
+
+    function initArena() {
+      sequence = shuffle(BTN_CONFIG);
+      currentIdx = 0;
+      timings = { large: [], medium: [], small: [] };
+      expState = 'wait-anchor';
+
+      document.getElementById('hit-count').textContent = '0';
+      document.getElementById('avg-time').textContent = '—';
+      document.getElementById('progress-fill').style.width = '0%';
+      setToast('TAP ↓ START ↓ TO BEGIN');
+
+      buildButtons();
+    }
+
+    function buildButtons() {
+      const arena = document.getElementById('arena');
+      arena.querySelectorAll('.exp-btn').forEach(b => b.remove());
+
+      const W = arena.offsetWidth || 342;
+      const H = arena.offsetHeight || 500;
+
+      BTN_CONFIG.forEach(cfg => {
+        const btn = document.createElement('button');
+        btn.className = `exp-btn btn-${cfg.type}`;
+        btn.id = `eb-${cfg.id}`;
+        btn.dataset.id = cfg.id;
+        btn.dataset.type = cfg.type;
+        btn.textContent = cfg.label;
+
+        const s = SZ[cfg.type];
+        btn.style.left = (cfg.xPct * W - s / 2) + 'px';
+        btn.style.top = (cfg.yPct * H - s / 2) + 'px';
+
+        btn.addEventListener('click', (e) => onExpClick(e, cfg.id, cfg.type, btn));
+        arena.appendChild(btn);
+      });
+    }
+
+    /* ════════════════════════════════════════════
+       ANCHOR CLICK
+    ════════════════════════════════════════════ */
+    function onAnchorClick() {
+      if (expState !== 'wait-anchor') return;
+      expState = 'run';
+      showTarget();
+    }
+
+    function showTarget() {
+      if (currentIdx >= sequence.length) {
+        endExperiment();
+        return;
+      }
+
+      const target = sequence[currentIdx];
+
+      // show all, highlight target
+      BTN_CONFIG.forEach(cfg => {
+        const b = document.getElementById(`eb-${cfg.id}`);
+        b.classList.add('visible');
+        b.classList.remove('target', 'hit');
+      });
+
+      document.getElementById(`eb-${target.id}`).classList.add('target');
+      setToast(`HIT: ${target.label}  (${target.type.toUpperCase()})`);
+
+      document.getElementById('progress-fill').style.width =
+        (currentIdx / sequence.length * 100) + '%';
+
+      startTime = performance.now();
+    }
+
+    /* ════════════════════════════════════════════
+       EXPERIMENT BUTTON CLICK
+    ════════════════════════════════════════════ */
+    function onExpClick(e, id, type, btn) {
+      if (expState !== 'run') return;
+      if (id !== sequence[currentIdx].id) return; // wrong button
+
+      const ms = Math.round(performance.now() - startTime);
+      timings[type].push(ms);
+
+      // Ripple
+      const arena = document.getElementById('arena');
+      const ar = arena.getBoundingClientRect();
+      const br = btn.getBoundingClientRect();
+      const s = SZ[type];
+      const rip = document.createElement('div');
+      rip.className = 'ripple';
+      const col = type === 'large' ? 'rgba(232,255,71,0.25)' : type === 'medium' ? 'rgba(0,212,255,0.25)' : 'rgba(255,107,157,0.25)';
+      rip.style.cssText = `width:${s}px;height:${s}px;left:${br.left - ar.left}px;top:${br.top - ar.top}px;background:${col};`;
+      arena.appendChild(rip);
+      setTimeout(() => rip.remove(), 600);
+
+      // Badge
+      const badge = document.createElement('div');
+      badge.className = 'time-badge';
+      badge.textContent = ms + 'ms';
+      badge.style.cssText = `left:${br.left - ar.left + s / 2 - 20}px;top:${br.top - ar.top - 10}px;`;
+      arena.appendChild(badge);
+      setTimeout(() => badge.remove(), 900);
+
+      // Animate button out
+      btn.classList.add('hit');
+      btn.classList.remove('target');
+
+      // Update score
+      currentIdx++;
+      const all = [...timings.large, ...timings.medium, ...timings.small];
+      document.getElementById('hit-count').textContent = all.length;
+      if (all.length) document.getElementById('avg-time').textContent = avg(all);
+
+      expState = 'wait-anchor';
+      setToast('↓ RETURN TO START ↓');
+
+      setTimeout(() => {
+        BTN_CONFIG.forEach(cfg => {
+          const b = document.getElementById(`eb-${cfg.id}`);
+          if (b) b.classList.remove('visible', 'target', 'hit');
+        });
+      }, 300);
+    }
+
+    function setToast(text) {
+      document.getElementById('toast').textContent = text;
+    }
+
+    /* ════════════════════════════════════════════
+       END EXPERIMENT → RESULTS
+    ════════════════════════════════════════════ */
+    function endExperiment() {
+      goTo('s4');
+
+      const all = [...timings.large, ...timings.medium, ...timings.small];
+      const aL = avg(timings.large);
+      const aM = avg(timings.medium);
+      const aS = avg(timings.small);
+      const aAll = avg(all);
+      const best = Math.min(...all);
+      const worst = Math.max(...all);
+      const maxT = Math.max(aL || 0, aM || 0, aS || 0) || 1;
+
+      document.getElementById('r-total').textContent = all.length;
+      document.getElementById('r-avg').textContent = aAll ? aAll + 'ms' : '—';
+      document.getElementById('r-best').textContent = best + 'ms';
+      document.getElementById('r-worst').textContent = worst + 'ms';
+
+      document.getElementById('t-L').textContent = aL ? aL + 'ms' : '—';
+      document.getElementById('t-M').textContent = aM ? aM + 'ms' : '—';
+      document.getElementById('t-S').textContent = aS ? aS + 'ms' : '—';
+
+      // Animate bars after short delay
+      setTimeout(() => {
+        document.getElementById('bar-L').style.width = ((aL || 0) / maxT * 100) + '%';
+        document.getElementById('bar-M').style.width = ((aM || 0) / maxT * 100) + '%';
+        document.getElementById('bar-S').style.width = ((aS || 0) / maxT * 100) + '%';
+      }, 300);
+
+      // Insight
+      let txt = '';
+      if (aL && aS) {
+        const diff = aS - aL;
+        if (diff > 0) {
+          txt = `Large buttons were <strong>${diff}ms faster</strong> to tap than small ones — exactly what Fitt's Law predicts. Bigger targets reduce both movement time and mental load. Design interfaces with appropriately large interactive zones for speed-critical actions.`;
+        } else {
+          txt = `Impressive precision! Your small-button times rivaled the large ones. Even so, Fitt's Law holds at scale — try again and notice how fatigue gradually reveals the size-speed relationship.`;
+        }
+      } else if (aL && aM && aM > aL) {
+        txt = `Your data confirms Fitt's Law: <strong>larger targets were faster to tap</strong>. Distance and size together determine how long a movement takes — closer, bigger targets are always the winning combo.`;
+      } else {
+        txt = `Interesting data! Fitt's Law shows that target width and distance both shape movement time. The formula T = a + b·log₂(2D/W) captured by your results reveals the logarithmic nature of human motor control.`;
+      }
+      document.getElementById('insight-text').innerHTML = txt;
+    }
+
+    /* ════════════════════════════════════════════
+       RESET
+    ════════════════════════════════════════════ */
+    function resetToStart() {
+      goTo('s1');
+    }
+  </script>
+</body>
+
+</html>
