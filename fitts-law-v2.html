@@ -1118,10 +1118,13 @@
       initArena();
     }
 
+    let misses = 0;
+
     function initArena() {
       sequence = shuffle(BTN_CONFIG);
       currentIdx = 0;
       timings = { large: [], medium: [], small: [] };
+      misses = 0;
       expState = 'wait-anchor';
 
       document.getElementById('hit-count').textContent = '0';
@@ -1154,10 +1157,23 @@
         btn.style.left = (cfg.xPct * W - s / 2) + 'px';
         btn.style.top = (cfg.yPct * H - s / 2) + 'px';
 
-        btn.addEventListener('click', (e) => onExpClick(e, cfg.id, cfg.type, btn));
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation(); // Prevent arena miss
+          onExpClick(e, cfg.id, cfg.type, btn);
+        });
         arena.appendChild(btn);
       });
     }
+
+    // Arena miss tracking
+    document.getElementById('arena').onclick = () => {
+      if (expState === 'run') {
+        misses++;
+        const arena = document.getElementById('arena');
+        arena.style.background = 'rgba(255,0,0,0.05)';
+        setTimeout(() => arena.style.background = 'var(--bg)', 150);
+      }
+    };
 
     /* ════════════════════════════════════════════
        ANCHOR CLICK
@@ -1301,6 +1317,39 @@
         txt = `Interesting data! Fitt's Law shows that target width and distance both shape movement time. The formula T = a + b·log₂(2D/W) captured by your results reveals the logarithmic nature of human motor control.`;
       }
       document.getElementById('insight-text').innerHTML = txt;
+
+      // LEADERBOARD LOGGING (v4.4)
+      const userName = localStorage.getItem('fitts_user_name') || 'Guest Athlete';
+      const leaderboard = JSON.parse(localStorage.getItem('fitts_leaderboard') || '[]');
+      const acc = Math.round((all.length / (all.length + misses)) * 100);
+
+      const entryBadges = [];
+      let beatMessage = "";
+
+      if (leaderboard.length === 0) entryBadges.push("First Blood");
+      if (acc === 100) entryBadges.push("Sniper");
+
+      const sortedPrev = [...leaderboard].sort((a, b) => a.avg - b.avg);
+      if (sortedPrev.length > 0) {
+        if (aAll < sortedPrev[0].avg) {
+          entryBadges.push("Leader");
+          if (sortedPrev[0].name !== userName) beatMessage = `You beat ${sortedPrev[0].name}!`;
+        } else {
+          const beaten = sortedPrev.find(e => aAll < e.avg && e.name !== userName);
+          if (beaten) beatMessage = `You beat ${beaten.name}!`;
+        }
+      }
+
+      leaderboard.push({
+        name: userName,
+        avg: aAll,
+        acc: acc,
+        date: new Date().toISOString(),
+        badges: entryBadges,
+        beat: beatMessage,
+        version: "v2"
+      });
+      localStorage.setItem('fitts_leaderboard', JSON.stringify(leaderboard));
     }
 
     /* ════════════════════════════════════════════

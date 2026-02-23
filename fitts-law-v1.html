@@ -1635,7 +1635,41 @@
       let txt = '';
       if (aSm > aLg * 1.08) txt = `Your data confirms Fitt's Law: <strong>larger targets were easier and faster to tap</strong>. Large buttons averaged ${aLg}ms vs ${aSm}ms for small — that's ${Math.round((aSm - aLg) / aLg * 100)}% slower. Button size significantly impacts interaction speed.`;
       else txt = `Your reaction times were consistent across sizes — impressive focus! Fitts' Law predicts <strong>larger, closer buttons are measurably faster</strong>. Try again at top speed to see the size effect amplify.`;
+
       document.getElementById('insightTxt').innerHTML = txt;
+
+      // LEADERBOARD LOGGING (v4.4)
+      const userName = localStorage.getItem('fitts_user_name') || 'Guest Athlete';
+      const leaderboard = JSON.parse(localStorage.getItem('fitts_leaderboard') || '[]');
+      const acc = Math.round(G.hits / R.length * 100);
+
+      const entryBadges = [];
+      let beatMessage = "";
+
+      if (leaderboard.length === 0) entryBadges.push("First Blood");
+      if (acc === 100) entryBadges.push("Sniper");
+
+      const sortedPrev = [...leaderboard].sort((a, b) => a.avg - b.avg);
+      if (sortedPrev.length > 0) {
+        if (avg < sortedPrev[0].avg) {
+          entryBadges.push("Leader");
+          if (sortedPrev[0].name !== userName) beatMessage = `You beat ${sortedPrev[0].name}!`;
+        } else {
+          const beaten = sortedPrev.find(e => avg < e.avg && e.name !== userName);
+          if (beaten) beatMessage = `You beat ${beaten.name}!`;
+        }
+      }
+
+      leaderboard.push({
+        name: userName,
+        avg: avg,
+        acc: acc,
+        date: new Date().toISOString(),
+        badges: entryBadges,
+        beat: beatMessage,
+        version: "v1"
+      });
+      localStorage.setItem('fitts_leaderboard', JSON.stringify(leaderboard));
     }
 
     function av(arr) { return arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : 0; }
