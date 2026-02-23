@@ -1641,7 +1641,6 @@
       // LEADERBOARD LOGGING (v4.4)
       const userName = localStorage.getItem('fitts_user_name') || 'Guest Athlete';
       const leaderboard = JSON.parse(localStorage.getItem('fitts_leaderboard') || '[]');
-      const acc = Math.round(G.hits / R.length * 100);
 
       const entryBadges = [];
       let beatMessage = "";
