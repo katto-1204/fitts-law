@@ -1029,6 +1029,43 @@
       }
     }
 
+    let drift = { x: 0, y: 0, vx: 0, vy: 0 };
+    let driftFrame = null;
+
+    function startDrift(targetId) {
+      const btn = document.getElementById(`eb-${targetId}`);
+      if (!btn) return;
+
+      // Random initial velocity
+      drift.vx = (Math.random() - 0.5) * 4;
+      drift.vy = (Math.random() - 0.5) * 4;
+
+      const update = () => {
+        if (expState !== 'wait-target') return;
+
+        let x = parseFloat(btn.style.left);
+        let y = parseFloat(btn.style.top);
+
+        x += drift.vx;
+        y += drift.vy;
+
+        // Bounce off arena walls
+        const arena = document.getElementById('arena');
+        const W = arena.offsetWidth;
+        const H = arena.offsetHeight;
+        const s = parseFloat(btn.style.width);
+
+        if (x < 0 || x > W - s) drift.vx *= -1;
+        if (y < 0 || y > H - s) drift.vy *= -1;
+
+        btn.style.left = x + 'px';
+        btn.style.top = y + 'px';
+
+        driftFrame = requestAnimationFrame(update);
+      };
+      driftFrame = requestAnimationFrame(update);
+    }
+
     function onAnchorClick() {
       if (expState !== 'wait-anchor') return;
       document.getElementById('anchor-btn').classList.remove('waiting');
@@ -1040,6 +1077,8 @@
       startTime = performance.now();
       expState = 'wait-target';
       setToast('');
+
+      startDrift(target.id);
     }
 
     function onExpClick(e, id, type, btn) {

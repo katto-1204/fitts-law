@@ -3,29 +3,27 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=390, initial-scale=1.0">
-  <title>Fitt's Law — Interactive Prototype</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Viper Command — Integrated Data Station</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
-    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&family=Outfit:wght@200;400;900&display=swap"
     rel="stylesheet">
   <style>
     :root {
-      --bg: #ffffff;
-      --text: #000000;
-      --border: #eeeeee;
-      --surface: #f9f9f9;
-      --surface2: #eeeeee;
-      --muted: #666666;
-      --muted2: #999999;
-      --accent: #000000;
+      --bg: #0A0518;
+      --card: #150E2D;
+      --accent: #A855F7;
+      --accent-glow: rgba(168, 85, 247, 0.4);
+      --text: #F3E8FF;
+      --muted: #A78BFA;
+      --border: rgba(168, 85, 247, 0.2);
       --font-mono: 'Space Mono', monospace;
-      --font-body: system-ui, -apple-system, sans-serif;
+      --font-display: 'Bebas Neue', sans-serif;
+      --font-body: 'Outfit', sans-serif;
     }
 
-    *,
-    *::before,
-    *::after {
+    * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
@@ -35,1120 +33,563 @@
       background: var(--bg);
       color: var(--text);
       font-family: var(--font-body);
+      height: 100vh;
+      overflow: hidden;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-      line-height: 1.5;
     }
 
     /* ═══════════════════════════════════════════════════
-   PHONE SHELL
-═══════════════════════════════════════════════════ */
-    /* Main Container */
-    .phone {
+       HOLOGRAPHIC BACKGROUND
+    ═══════════════════════════════════════════════════ */
+    .bg-fx {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background: radial-gradient(circle at 50% 50%, #1A0B3B 0%, #0A0518 100%);
+    }
+
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 80px 80px;
+      opacity: 0.3;
+      transform: perspective(500px) rotateX(20deg) scale(2);
+      transform-origin: top;
+      animation: grid-scroll 20s linear infinite;
+    }
+
+    @keyframes grid-scroll {
+      from {
+        background-position: 0 0;
+      }
+
+      to {
+        background-position: 0 800px;
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════
+       HEADER & HUD
+    ═══════════════════════════════════════════════════ */
+    .hud-header {
+      height: 60px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 40px;
+      gap: 20px;
+      background: rgba(15, 10, 31, 0.8);
+      backdrop-filter: blur(10px);
+    }
+
+    .hud-logo {
+      font-family: var(--font-display);
+      font-size: 28px;
+      letter-spacing: 2px;
+      color: var(--accent);
+      text-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    .status-group {
+      display: flex;
+      gap: 24px;
+      margin-left: auto;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .status-item span {
+      color: var(--muted);
+      margin-right: 6px;
+    }
+
+    /* ═══════════════════════════════════════════════════
+       DASHBOARD LAYOUT
+    ═══════════════════════════════════════════════════ */
+    .main-deck {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 320px 1fr 320px;
+      gap: 24px;
+      padding: 24px;
+      max-width: 1600px;
+      margin: 0 auto;
       width: 100%;
-      max-width: 440px;
-      height: 100vh;
-      max-height: 900px;
-      border: 2.5px solid var(--border);
+    }
+
+    .panel {
+      background: rgba(21, 14, 45, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      backdrop-filter: blur(20px);
+      display: flex;
+      flex-direction: column;
+      padding: 24px;
       position: relative;
-      background: var(--bg);
-      margin: auto;
       overflow: hidden;
     }
 
-    .screen {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      padding: 40px 24px;
-      overflow-y: auto;
-      transition: opacity 0.25s ease;
-    }
-
-    .screen.hidden {
-      display: none !important;
-    }
-
-    /* Shared components */
-    .tag {
-      font-size: 10px;
+    .panel-label {
       font-family: var(--font-mono);
-      color: var(--muted);
-      border: 1px solid #eee;
-      padding: 4px 8px;
-      width: fit-content;
-      margin-bottom: 24px;
-    }
-
-    .tag::before {
-      display: none;
-    }
-
-    .primary-btn {
-      width: 100%;
-      padding: 24px;
-      background: #000;
-      color: #fff;
-      border: none;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      cursor: pointer;
-      font-size: 14px;
-      transition: background 0.2s;
-    }
-
-    .primary-btn:hover {
-      background: #333;
-    }
-
-    .primary-btn::after {
-      content: ' →';
-    }
-
-    .divider {
-      height: 1px;
-      background: #eee;
-      margin: 32px 0;
-    }
-
-    .s1-headline {
-      font-size: 64px;
-      line-height: 1;
-      font-weight: 800;
-      margin-bottom: 24px;
-      text-transform: uppercase;
-      letter-spacing: -2px;
-    }
-
-    .s1-desc {
-      font-size: 16px;
-      color: var(--muted);
-      margin-bottom: 40px;
-    }
-
-    .s1-top {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-
-    .s1-bottom {
-      padding: 24px 0 0;
-    }
-
-    .s1-chips {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-
-    .chip {
-      background: #fcfcfc;
-      border: 1px solid #eee;
-      padding: 12px;
-      text-align: center;
-      flex: 1;
-    }
-
-    .chip-val {
-      font-size: 24px;
-      font-weight: 800;
-      line-height: 1;
-    }
-
-    .chip-lbl {
-      font-size: 9px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--muted);
-      margin-top: 4px;
-    }
-
-    /* ═══════════════════════════════════════════════════
-   SCREEN 2 — INSTRUCTIONS
-═══════════════════════════════════════════════════ */
-    #s2 {
-      background: var(--bg);
-      padding-bottom: 40px;
-      overflow-y: auto;
-    }
-
-    .s2-header {
-      padding: 8px 28px 20px;
-      flex-shrink: 0;
-    }
-
-    .s2-title {
-      font-family: var(--font-display);
-      font-size: 52px;
-      line-height: 0.95;
-      color: var(--text);
-      margin-top: 12px;
-    }
-
-    .s2-title em {
+      font-size: 10px;
       color: var(--accent);
-      font-style: normal;
-    }
-
-    .s2-sub {
-      font-size: 12px;
-      color: var(--muted2);
-      margin-top: 8px;
-      line-height: 1.5;
-      font-weight: 300;
-    }
-
-    .s2-section {
-      padding: 0 28px;
       margin-bottom: 20px;
-    }
-
-    .section-label {
-      font-family: var(--font-mono);
-      font-size: 9px;
-      color: var(--muted);
-      letter-spacing: 0.18em;
+      letter-spacing: 2px;
       text-transform: uppercase;
-      margin-bottom: 12px;
       display: flex;
       align-items: center;
-      gap: 8px;
-    }
-
-    .section-label::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
-
-    /* Button size showcase */
-    .size-showcase {
-      background: var(--surface);
-      border-radius: 18px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .showcase-row {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .showcase-circle {
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: var(--font-mono);
-      font-weight: 700;
-      flex-shrink: 0;
-    }
-
-    .sc-large {
-      width: 50px;
-      height: 50px;
-      background: #000;
-      color: #fff;
-    }
-
-    .sc-medium {
-      width: 34px;
-      height: 34px;
-      background: #999;
-      color: #fff;
-      border: none;
-    }
-
-    .sc-small {
-      width: 22px;
-      height: 22px;
-      background: #fff;
-      color: #000;
-    }
-
-    .showcase-info {
-      flex: 1;
-    }
-
-    .showcase-name {
-      font-size: 13px;
-      color: var(--text);
-      font-weight: 600;
-      margin-bottom: 2px;
-    }
-
-    .showcase-desc {
-      font-size: 11px;
-      color: var(--muted2);
-      font-weight: 300;
-    }
-
-    .showcase-count {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--muted);
-      background: var(--surface2);
-      padding: 4px 8px;
-      border-radius: 6px;
-    }
-
-    /* Principles */
-    .principles-list {
-      display: flex;
-      flex-direction: column;
       gap: 10px;
     }
 
-    .principle-card {
-      background: #fff;
-      border-bottom: 1px solid #eee;
-      padding: 16px 0;
-      display: flex;
-      gap: 16px;
-      align-items: flex-start;
-    }
-
-    .p-icon {
-      font-size: 18px;
-      flex-shrink: 0;
-      margin-top: 1px;
-    }
-
-    .p-title {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text);
-      margin-bottom: 3px;
-    }
-
-    .p-desc {
-      font-size: 11px;
-      color: var(--muted2);
-      line-height: 1.5;
-      font-weight: 300;
-    }
-
-    /* Tips */
-    .tips-box {
-      background: rgba(232, 255, 71, 0.05);
-      border: 1px solid rgba(232, 255, 71, 0.15);
-      border-radius: 16px;
-      padding: 16px 18px;
-    }
-
-    .tip-item {
-      font-size: 13px;
-      color: var(--muted);
-      display: flex;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    .tip-num {
-      font-weight: 800;
-      color: #000;
-    }
-
-    .objective-banner {
-      display: flex;
-      gap: 16px;
-      padding: 20px;
-      background: #f9f9f9;
-      border: 1px solid #eee;
-      margin-bottom: 24px;
-    }
-
-    .obj-text strong {
-      color: #000;
-      font-weight: 800;
+    .panel-label::after {
+      content: '';
+      height: 1px;
+      flex: 1;
+      background: var(--border);
     }
 
     /* ═══════════════════════════════════════════════════
-   SCREEN 3 — EXPERIMENT ARENA
-═══════════════════════════════════════════════════ */
-    #s3 {
-      background: var(--bg);
+       ARENA (CENTER)
+    ═══════════════════════════════════════════════════ */
+    .arena-panel {
+      padding: 0;
+      overflow: hidden;
+      border-color: var(--accent);
+      box-shadow: inset 0 0 50px rgba(168, 85, 247, 0.1);
     }
 
-    .exp-header {
-      border-bottom: 2px solid #000;
-      padding: 12px 16px 20px;
-      margin-bottom: 32px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
+    #arena {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      background: rgba(0, 0, 0, 0.2);
     }
 
-    .exp-label {
-      font-size: 10px;
-      font-family: var(--font-mono);
-      font-weight: 700;
-      text-transform: uppercase;
+    .scanline {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: rgba(168, 85, 247, 0.15);
+      z-index: 10;
+      animation: scan 4s linear infinite;
     }
 
-    .scoreboard {
-      display: flex;
-      gap: 24px;
-    }
+    @keyframes scan {
+      from {
+        top: -2%;
+      }
 
-    .score-pill {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-    }
-
-    .score-val {
-      font-size: 32px;
-      font-weight: 800;
-      line-height: 0.9;
-    }
-
-    .score-lbl {
-      font-size: 9px;
-      font-family: var(--font-mono);
-      color: var(--muted);
-      text-transform: uppercase;
+      to {
+        top: 102%;
+      }
     }
 
     /* Targets */
     .tgt {
       position: absolute;
       border-radius: 50%;
-      background: #fff;
-      border: 2px solid #000;
+      background: transparent;
+      border: 1px solid var(--muted);
+      cursor: pointer;
+      opacity: 0.2;
+      transition: all 0.2s;
       display: flex;
-      flex-direction: column;
+      outline: none;
       align-items: center;
       justify-content: center;
-      cursor: pointer;
-      opacity: 0.1;
-      transition: transform 0.1s, background 0.2s, opacity 0.2s;
       font-family: var(--font-mono);
-      font-weight: 800;
-      font-size: 11px;
+      font-weight: 700;
+      pointer-events: none;
     }
 
     .tgt.active-t {
       opacity: 1;
-      background: #000;
-      color: #fff;
+      border-color: #fff;
+      background: var(--accent);
+      box-shadow: 0 0 30px var(--accent-glow), 0 0 10px #fff;
+      pointer-events: all;
+      transform: scale(1.1);
     }
 
-    .tgt-lbl {
-      font-size: 11px;
-      font-family: var(--font-mono);
-      font-weight: 700;
-    }
-
-    .tgt-sub {
-      display: none;
-    }
-
-    /* Hide redundant S3 effects */
-    .progress-track,
-    .exp-legend,
-    .hit-flash {
-      display: none !important;
-    }
-
-    /* ARENA — the tap zone */
-    .arena {
-      flex: 1;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .toast {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 14px;
-      font-weight: 800;
-      color: var(--muted2);
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      pointer-events: none;
-      white-space: nowrap;
-      opacity: 0.4;
-    }
-
-    @keyframes btn-hit {
-      0% {
-        transform: scale(1);
-        opacity: 1;
-      }
-
-      100% {
-        transform: scale(1.5);
-        opacity: 0;
-      }
-    }
-
-    .anchor-zone {
-      padding: 32px 0;
-      border-top: 1px solid #eee;
-      display: flex;
-      justify-content: center;
-    }
-
+    /* Anchor button */
     .anchor-btn {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
       width: 80px;
       height: 80px;
       border-radius: 50%;
       background: #000;
+      border: 2px solid var(--border);
       color: #fff;
-      border: none;
-      font-weight: 800;
-      font-size: 12px;
+      font-family: var(--font-display);
+      font-size: 18px;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      z-index: 100;
+      transition: all 0.3s;
     }
 
     .anchor-btn.waiting {
-      background: #fff;
-      color: #000;
-      border: 2px solid #000;
+      border-color: var(--accent);
+      background: var(--surface2);
+      box-shadow: 0 0 20px var(--accent-glow);
       animation: pulse 1s infinite alternate;
     }
 
     @keyframes pulse {
       from {
-        opacity: 1;
+        opacity: 0.7;
+        transform: translateX(-50%) scale(0.95);
       }
 
       to {
-        opacity: 0.5;
-      }
-    }
-
-    /* Ripple effect */
-    .ripple {
-      position: absolute;
-      border-radius: 50%;
-      pointer-events: none;
-      z-index: 50;
-      animation: ripple-expand 0.55s ease-out forwards;
-    }
-
-    @keyframes ripple-expand {
-      to {
-        transform: scale(4);
-        opacity: 0;
-      }
-    }
-
-    /* Time badge */
-    .time-badge {
-      position: absolute;
-      background: var(--accent);
-      color: #080810;
-      font-family: var(--font-mono);
-      font-size: 10px;
-      font-weight: 700;
-      padding: 3px 9px;
-      border-radius: 20px;
-      pointer-events: none;
-      z-index: 100;
-      animation: badge-rise 0.85s ease forwards;
-    }
-
-    @keyframes badge-rise {
-      0% {
         opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-
-      100% {
-        opacity: 0;
-        transform: translateY(-55px) scale(0.75);
+        transform: translateX(-50%) scale(1.05);
       }
     }
 
     /* ═══════════════════════════════════════════════════
-   SCREEN 4 — RESULTS
-═══════════════════════════════════════════════════ */
-    #s4 {
-      background: var(--bg);
-      padding: 0 26px 40px;
-      overflow-y: auto;
+       TELEMETRY (LEFT)
+    ═══════════════════════════════════════════════════ */
+    .telemetry-row {
+      margin-bottom: 32px;
     }
 
-    .results-hero {
-      padding-top: 12px;
-      margin-bottom: 24px;
+    .tel-val {
+      font-size: 48px;
+      font-weight: 900;
+      line-height: 1;
+      color: var(--accent);
     }
 
-    .results-eyebrow {
+    .tel-lbl {
+      font-size: 11px;
       font-family: var(--font-mono);
-      font-size: 9px;
       color: var(--muted);
-      letter-spacing: 0.18em;
       text-transform: uppercase;
-      margin-bottom: 6px;
+      margin-top: 4px;
     }
 
-    .results-headline {
-      font-family: var(--font-display);
-      font-size: 64px;
-      line-height: 0.92;
+    .mini-chart {
+      height: 60px;
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      margin-top: 12px;
+    }
+
+    .chart-bar {
+      flex: 1;
+      background: var(--muted);
+      opacity: 0.3;
+      transition: height 0.5s;
+    }
+
+    /* ═══════════════════════════════════════════════════
+       MISSION LOG (RIGHT)
+    ═══════════════════════════════════════════════════ */
+    .log-list {
+      flex: 1;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .log-item {
+      display: flex;
+      gap: 10px;
+      color: var(--muted2);
+    }
+
+    .log-item.active {
       color: var(--text);
     }
 
-    .results-headline em {
+    .log-item.done {
       color: var(--accent);
-      font-style: normal;
     }
 
-    /* Stat grid */
-    .stat-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 16px;
+    .log-item b {
+      color: var(--accent);
     }
 
-    .stat-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 16px 14px;
+    /* ═══════════════════════════════════════════════════
+       DATA OVERLAYS
+    ═══════════════════════════════════════════════════ */
+    .overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 500;
+      background: rgba(10, 5, 24, 0.95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
     }
 
-    .stat-card.wide {
-      grid-column: 1 / -1;
+    .overlay.hidden {
+      display: none;
     }
 
-    .stat-val {
+    .modal {
+      width: 100%;
+      max-width: 600px;
+      text-align: center;
+    }
+
+    .modal h2 {
       font-family: var(--font-display);
-      font-size: 38px;
-      line-height: 1;
-      margin-bottom: 4px;
-      display: block;
-    }
-
-    .stat-lbl {
-      font-family: var(--font-mono);
-      font-size: 9px;
-      color: var(--muted2);
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-    }
-
-    /* Breakdown bars */
-    .breakdown-heading {
-      font-family: var(--font-mono);
-      font-size: 9px;
-      color: var(--muted);
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      margin-bottom: 14px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .breakdown-heading::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
-
-    .breakdown-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      font-size: 64px;
+      color: var(--accent);
       margin-bottom: 12px;
     }
 
-    .br-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
-    .br-label {
-      font-size: 11px;
-      color: var(--text);
-      width: 72px;
-      flex-shrink: 0;
-      font-weight: 500;
-    }
-
-    .br-track {
-      flex: 1;
-      height: 8px;
-      background: var(--surface2);
-      border-radius: 4px;
-      overflow: hidden;
-    }
-
-    .br-fill {
-      height: 100%;
-      border-radius: 4px;
-      width: 0%;
-      transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    .br-time {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--muted2);
-      width: 52px;
-      text-align: right;
-      flex-shrink: 0;
-    }
-
-    /* Insight card */
-    .insight-card {
-      background: rgba(232, 255, 71, 0.05);
-      border: 1px solid rgba(232, 255, 71, 0.18);
-      border-radius: 16px;
-      padding: 18px;
-      margin-bottom: 18px;
-    }
-
-    .insight-eyebrow {
-      font-family: var(--font-mono);
-      font-size: 9px;
-      color: var(--accent);
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .insight-eyebrow::before {
-      content: '✦';
-      font-size: 10px;
-    }
-
-    .insight-text {
-      font-size: 13px;
+    .modal p {
       color: var(--muted);
-      line-height: 1.6;
+      margin-bottom: 32px;
+      font-size: 18px;
     }
 
-    .insight-text strong {
-      color: #000;
-      font-weight: 800;
-    }
-
-    .retry-btn {
-      width: 100%;
-      padding: 24px;
-      background: #000;
+    .btn-action {
+      padding: 20px 48px;
+      background: var(--accent);
       color: #fff;
       border: none;
-      font-weight: 700;
-      text-transform: uppercase;
+      font-family: var(--font-display);
+      font-size: 24px;
       cursor: pointer;
+      letter-spacing: 2px;
+      transition: all 0.2s;
     }
 
-    .retry-btn:hover {
-      background: #333;
+    .btn-action:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 30px var(--accent-glow);
     }
 
-    .animate-in {
-      opacity: 1;
+    /* Splits */
+    .splits-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin: 32px 0;
     }
 
-    /* No animations for simple version */
-
-    .delay-1 {
-      animation-delay: 0.1s;
+    .split-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 20px;
+      border-radius: 8px;
     }
 
-    .delay-2 {
-      animation-delay: 0.2s;
+    .split-val {
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--accent);
     }
 
-    .delay-3 {
-      animation-delay: 0.3s;
+    .split-lbl {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--muted);
     }
 
-    .delay-4 {
-      animation-delay: 0.4s;
-    }
-
-    .delay-5 {
-      animation-delay: 0.5s;
-    }
-
-    /* Home button */
-    .home-link {
+    /* Footer return */
+    .back-home {
       position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 9999;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 20px;
-      background: #000;
-      border: 1px solid #000;
-      border-radius: 4px;
-      color: #fff;
+      bottom: 24px;
+      right: 24px;
+      color: var(--muted);
       font-family: var(--font-mono);
       font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
       text-decoration: none;
-      transition: all 0.2s;
-      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 2px;
     }
 
-    .home-link:hover {
-      background: #333;
-      transform: translateY(-1px);
-    }
+    @media (max-width: 1200px) {
+      .main-deck {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr auto;
+        height: auto;
+        overflow: visible;
+      }
 
-    .home-link:active {
-      transform: scale(0.97);
-    }
+      body {
+        overflow-y: auto;
+        height: auto;
+      }
 
-    body {
-      flex-direction: column;
-      gap: 0;
+      .panel {
+        height: 400px;
+      }
     }
   </style>
 </head>
 
 <body>
 
-  <a href="index.html" class="home-link">← Home</a>
+  <div class="bg-fx"></div>
+  <div class="bg-grid"></div>
 
-  <div class="phone">
-
-    <!-- ████████████████████ SCREEN 1 — TITLE ████████████████████ -->
-    <div class="screen" id="s1">
-      <div class="s1-top">
-        <div class="tag">UX RESEARCH · 2026</div>
-        <div class="s1-headline">FITT'S<br>LAW</div>
-        <p class="s1-desc">A hands-on experiment testing tap speed and accuracy.</p>
-      </div>
-
-      <div class="s1-bottom">
-        <div class="s1-chips">
-          <div class="chip">
-            <div class="chip-val">8</div>
-            <span class="chip-lbl">BTNS</span>
-          </div>
-          <div class="chip">
-            <div class="chip-val">3</div>
-            <span class="chip-lbl">SIZES</span>
-          </div>
-        </div>
-        <button class="primary-btn" onclick="goTo('s2')">BEGIN</button>
-      </div>
+  <header class="hud-header">
+    <div class="hud-logo">VIPER COMMAND</div>
+    <div class="status-group">
+      <div class="status-item"><span>SECTOR:</span> V2-PURPLE</div>
+      <div class="status-item"><span>DIFFICULTY:</span> AVERAGE</div>
+      <div class="status-item"><span>STATUS:</span> <b id="status-txt">ACTIVE</b></div>
     </div>
+  </header>
 
-    <!-- ████████████████████ SCREEN 2 — INSTRUCTIONS ████████████████████ -->
-    <div class="screen hidden" id="s2">
-      <div class="s2-header">
-        <div class="tag">INSTRUCTIONS</div>
-        <div class="s2-title">HOW IT WORKS</div>
-        <p class="s2-sub">Understand the experiment before you begin.</p>
+  <main class="main-deck">
+    <!-- Left: Telemetry -->
+    <aside class="panel">
+      <div class="panel-label">Telemetry</div>
+
+      <div class="telemetry-row">
+        <div class="tel-val" id="hit-count">0</div>
+        <div class="tel-lbl">Targets Captured</div>
       </div>
 
-      <div style="flex:1; overflow-y:auto; padding-bottom: 20px;">
-        <div class="s2-section">
-          <div class="section-label">Objective</div>
-          <div class="objective-banner">
-            <div class="obj-icon">🎯</div>
-            <div class="obj-text">
-              Tap the <strong>highlighted button</strong>, then return to <strong>START</strong>.
-            </div>
-          </div>
+      <div class="telemetry-row">
+        <div class="tel-val" id="avg-time">—</div>
+        <div class="tel-lbl">Avg Response (ms)</div>
+        <div class="mini-chart" id="chart-container">
+          <!-- Bars generated via JS -->
+          <div class="chart-bar" style="height: 20%"></div>
+          <div class="chart-bar" style="height: 40%"></div>
+          <div class="chart-bar" style="height: 30%"></div>
+          <div class="chart-bar" style="height: 60%"></div>
         </div>
-
-        <div class="divider"></div>
-
-        <div class="s2-section">
-          <div class="section-label">Button Sizes</div>
-          <div class="size-showcase">
-            <div class="showcase-row">
-              <div class="showcase-circle sc-large">L</div>
-              <div class="showcase-info">
-                <div class="showcase-name">Large</div>
-                <div class="showcase-desc">50px — Fast</div>
-              </div>
-              <div class="showcase-count">×3</div>
-            </div>
-
-            <div class="showcase-row">
-              <div class="showcase-circle sc-medium">M</div>
-              <div class="showcase-info">
-                <div class="showcase-name">Medium</div>
-                <div class="showcase-desc">34px — Moderate</div>
-              </div>
-              <div class="showcase-count">×3</div>
-            </div>
-
-            <div class="showcase-row">
-              <div class="showcase-circle sc-small">S</div>
-              <div class="showcase-info">
-                <div class="showcase-name">Small</div>
-                <div class="showcase-desc">22px — Slow</div>
-              </div>
-              <div class="showcase-count">×2</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="divider" style="margin-bottom:20px;"></div>
-
-        <div class="s2-section">
-          <div class="section-label">Fitt's Law Principles</div>
-          <div class="principles-list">
-
-            <div class="principle-card p1">
-              <div class="p-icon">📏</div>
-              <div>
-                <div class="p-title">Size matters</div>
-                <div class="p-desc">Larger buttons are faster and easier to tap. Doubling button size noticeably reduces
-                  movement time.</div>
-              </div>
-            </div>
-
-            <div class="principle-card p2">
-              <div class="p-icon">↔️</div>
-              <div>
-                <div class="p-title">Distance costs time</div>
-                <div class="p-desc">Buttons closer to your starting position are reached faster. Each extra inch of
-                  distance adds measurable delay.</div>
-              </div>
-            </div>
-
-            <div class="principle-card p3">
-              <div class="p-icon">⚖️</div>
-              <div>
-                <div class="p-title">The index of difficulty</div>
-                <div class="p-desc">T = a + b·log₂(2D/W) — time scales logarithmically with distance-to-size ratio.
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        <div class="divider" style="margin-bottom:20px;"></div>
-
-        <div class="s2-section">
-          <div class="section-label">Tips</div>
-          <div class="tips-box">
-            <div class="tip-item">
-              <div class="tip-num">1</div>
-              <div>Tap <strong style="color:var(--text)">START</strong> first — then immediately tap the highlighted
-                button as fast as you can.</div>
-            </div>
-            <div class="tip-item">
-              <div class="tip-num">2</div>
-              <div>Always return to <strong style="color:var(--text)">START</strong> between each tap — this resets the
-                distance measurement.</div>
-            </div>
-            <div class="tip-item">
-              <div class="tip-num">3</div>
-              <div>Prioritize <strong style="color:var(--text)">accuracy</strong> — hitting the wrong button won't
-                count.</div>
-            </div>
-            <div class="tip-item">
-              <div class="tip-num">4</div>
-              <div>Notice how <strong style="color:#000">larger</strong> buttons feel instinctively easier than <strong
-                  style="color:var(--muted)">smaller</strong> ones.</div>
-            </div>
-          </div>
-        </div>
-
       </div>
 
-      <div style="padding:12px 28px 0; flex-shrink:0;">
-        <button class="primary-btn" onclick="startExperiment()">START EXPERIMENT</button>
+      <div class="telemetry-row" style="margin-top: auto;">
+        <div class="tel-val" style="font-size: 24px;">98.2%</div>
+        <div class="tel-lbl">System Precision</div>
       </div>
+    </aside>
+
+    <!-- Center: Arena -->
+    <section class="panel arena-panel">
+      <div class="scanline"></div>
+      <div id="arena">
+        <button id="anchor-btn" class="anchor-btn waiting" onclick="onAnchorClick()">START</button>
+      </div>
+    </section>
+
+    <!-- Right: Mission Log -->
+    <aside class="panel">
+      <div class="panel-label">Mission Log</div>
+      <div class="log-list" id="mission-log">
+        <div class="log-item active">Initializing tactical arena...</div>
+        <div class="log-item">Awaiting pilot authorization...</div>
+        <div class="log-item">Standard movement benchmarks active.</div>
+      </div>
+
+      <div class="panel-label" style="margin-top: 40px;">Hardware</div>
+      <div style="font-size: 12px; color: var(--muted2); font-family: var(--font-mono);">
+        [SZ: L44, M28, S16]<br>
+        [CALIBRATION: PASSED]
+      </div>
+    </aside>
+  </main>
+
+  <!-- START OVERLAY -->
+  <div id="start-overlay" class="overlay">
+    <div class="modal">
+      <h2>PURPLE ARENA</h2>
+      <p>High-precision diagnostic workstation. Average difficulty. Cyber-Viper calibration enabled.</p>
+      <button class="btn-action" onclick="closeOverlay('start-overlay')">INITIALIZE</button>
     </div>
+  </div>
 
-    <div class="screen hidden" id="s3">
-      <div class="exp-header">
-        <div class="exp-label">TRIAL</div>
-        <div class="scoreboard">
-          <div class="score-pill">
-            <span class="score-val" id="hit-count">0</span>
-            <span class="score-lbl">HITS</span>
-          </div>
-          <div class="score-pill">
-            <span class="score-val" id="avg-time">—</span>
-            <span class="score-lbl">MS</span>
-          </div>
+  <!-- RESULTS OVERLAY -->
+  <div id="results-overlay" class="overlay hidden">
+    <div class="modal">
+      <h2>RECAP COMPLETE</h2>
+      <div class="splits-grid">
+        <div class="split-card">
+          <div class="split-val" id="r-avg">—</div>
+          <div class="split-lbl">AVG TIME</div>
+        </div>
+        <div class="split-card">
+          <div class="split-val" id="r-acc">—</div>
+          <div class="split-lbl">ACCURACY</div>
+        </div>
+        <div class="split-card">
+          <div class="split-val" id="r-total">—</div>
+          <div class="split-lbl">TARGETS</div>
         </div>
       </div>
-
-      <div class="arena" id="arena">
-        <div class="toast" id="toast">TAP START</div>
-      </div>
-
-      <div class="anchor-zone">
-        <button class="anchor-btn" id="anchor-btn" onclick="onAnchorClick()">START</button>
-      </div>
+      <button class="btn-action" onclick="location.reload()">RE-CALIBRATE</button>
+      <a href="index.html" class="btn-action"
+        style="background: transparent; color: var(--muted); border: 1px solid var(--border); display: block; margin-top: 12px; text-decoration: none; padding: 12px;">EXIT
+        TO BASE</a>
     </div>
+  </div>
 
-    <!-- ████████████████████ SCREEN 4 — RESULTS ████████████████████ -->
-    <div class="screen hidden" id="s4">
-      <div class="results-hero">
-        <div class="results-eyebrow">COMPLETE</div>
-        <div class="results-headline">YOUR DATA</div>
-      </div>
-
-      <div class="stat-grid">
-        <div class="stat-card">
-          <span class="stat-val" id="r-total">0</span>
-          <span class="stat-lbl">Hits</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-val" id="r-avg">—</span>
-          <span class="stat-lbl">Avg ms</span>
-        </div>
-      </div>
-
-      <div class="stat-card wide" style="margin-bottom:16px;">
-        <div class="breakdown-heading">Breakdown</div>
-        <div class="breakdown-row">
-          <div class="br-label">L</div>
-          <div class="br-track">
-            <div class="br-fill" id="bar-L"></div>
-          </div>
-          <div class="br-time" id="t-L">—</div>
-        </div>
-        <div class="breakdown-row">
-          <div class="br-label">M</div>
-          <div class="br-track">
-            <div class="br-fill" id="bar-M"></div>
-          </div>
-          <div class="br-time" id="t-M">—</div>
-        </div>
-        <div class="breakdown-row">
-          <div class="br-label">S</div>
-          <div class="br-track">
-            <div class="br-fill" id="bar-S"></div>
-          </div>
-          <div class="br-time" id="t-S">—</div>
-        </div>
-      </div>
-
-      <div class="insight-card">
-        <div class="insight-eyebrow">Key Insight</div>
-        <div class="insight-text" id="insight-text">Analyzing your results…</div>
-      </div>
-
-      <button class="retry-btn" onclick="resetToStart()">↺ TRY AGAIN</button>
-    </div>
-
-  </div><!-- /phone -->
+  <a href="index.html" class="back-home">← Return to Base</a>
 
   <script>
-    /* ════════════════════════════════════════════
-       NAVIGATION
-    ════════════════════════════════════════════ */
-    function goTo(id) {
-      document.querySelectorAll('.screen').forEach(s => {
-        s.classList.add('hidden');
-      });
-      document.getElementById(id).classList.remove('hidden');
-    }
-
-    /* ════════════════════════════════════════════
-       BUTTON CONFIGURATION
-       Arena approx: 390×520px
-       Anchor at bottom-center ≈ (195, 520)
-    ════════════════════════════════════════════ */
     const BTN_CONFIG = [
-      // LARGE (90px) — 3 buttons
-      { id: 'L1', type: 'large', xPct: 0.50, yPct: 0.08, label: 'L1' }, // near top-center
-      { id: 'L2', type: 'large', xPct: 0.14, yPct: 0.35, label: 'L2' }, // mid-left
-      { id: 'L3', type: 'large', xPct: 0.82, yPct: 0.22, label: 'L3' }, // upper-right
-
-      // MEDIUM (60px) — 3 buttons
-      { id: 'M1', type: 'medium', xPct: 0.78, yPct: 0.60, label: 'M1' }, // lower-right
-      { id: 'M2', type: 'medium', xPct: 0.22, yPct: 0.65, label: 'M2' }, // lower-left
-      { id: 'M3', type: 'medium', xPct: 0.55, yPct: 0.40, label: 'M3' }, // center-mid
-
-      // SMALL (38px) — 2 buttons
-      { id: 'S1', type: 'small', xPct: 0.08, yPct: 0.10, label: 'S1' }, // far top-left
-      { id: 'S2', type: 'small', xPct: 0.90, yPct: 0.76, label: 'S2' }, // far bottom-right
+      { id: 'L1', type: 'large', xPct: 0.50, yPct: 0.15, label: '01' },
+      { id: 'L2', type: 'large', xPct: 0.15, yPct: 0.40, label: '02' },
+      { id: 'L3', type: 'large', xPct: 0.85, yPct: 0.30, label: '03' },
+      { id: 'M1', type: 'medium', xPct: 0.80, yPct: 0.70, label: '04' },
+      { id: 'M2', type: 'medium', xPct: 0.25, yPct: 0.75, label: '05' },
+      { id: 'M3', type: 'medium', xPct: 0.55, yPct: 0.50, label: '06' },
+      { id: 'S1', type: 'small', xPct: 0.10, yPct: 0.15, label: '07' },
+      { id: 'S2', type: 'small', xPct: 0.90, yPct: 0.85, label: '08' },
     ];
 
-    const SZ = { large: 50, medium: 34, small: 22 };
-
+    const SZ = { large: 44, medium: 28, small: 16 };
     let sequence = [];
     let currentIdx = 0;
     let startTime = 0;
     let timings = { large: [], medium: [], small: [] };
+    let misses = 0;
     let expState = 'idle'; // idle | wait-anchor | run
 
-    function shuffle(arr) {
-      const a = [...arr];
-      for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]]; }
-      return a;
+    function closeOverlay(id) {
+      document.getElementById(id).classList.add('hidden');
+      if (id === 'start-overlay') initArena();
     }
-
-    function avg(arr) {
-      return arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : null;
-    }
-
-    /* ════════════════════════════════════════════
-       START EXPERIMENT
-    ════════════════════════════════════════════ */
-    function startExperiment() {
-      goTo('s3');
-      initArena();
-    }
-
-    let misses = 0;
 
     function initArena() {
-      sequence = shuffle(BTN_CONFIG);
+      const arena = document.getElementById('arena');
+      arena.querySelectorAll('.tgt').forEach(t => t.remove());
+
+      sequence = [...BTN_CONFIG].sort(() => Math.random() - 0.5);
       currentIdx = 0;
       timings = { large: [], medium: [], small: [] };
       misses = 0;
       expState = 'wait-anchor';
 
-      document.getElementById('hit-count').textContent = '0';
-      document.getElementById('avg-time').textContent = '—';
-      setToast('TAP START');
-
-      document.getElementById('anchor-btn').classList.add('waiting');
-
-      buildButtons();
+      addLog('Arena initialized. Ready for calibration.');
+      buildTargets();
     }
 
-    function buildButtons() {
+    function buildTargets() {
       const arena = document.getElementById('arena');
-      arena.querySelectorAll('.tgt').forEach(b => b.remove());
+      const W = arena.offsetWidth;
+      const H = arena.offsetHeight;
 
-      const W = arena.offsetWidth || 342;
-      const H = arena.offsetHeight || 500;
-
-      BTN_CONFIG.forEach(cfg => {
-        const btn = document.createElement('button');
-        btn.className = `tgt`;
+      sequence.forEach(cfg => {
+        const btn = document.createElement('div');
+        btn.className = 'tgt';
         btn.id = `eb-${cfg.id}`;
-        btn.dataset.id = cfg.id;
-        btn.dataset.type = cfg.type;
         btn.textContent = cfg.label;
 
         const s = SZ[cfg.type];
@@ -1157,207 +598,118 @@
         btn.style.left = (cfg.xPct * W - s / 2) + 'px';
         btn.style.top = (cfg.yPct * H - s / 2) + 'px';
 
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation(); // Prevent arena miss
-          onExpClick(e, cfg.id, cfg.type, btn);
-        });
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          onExpClick(cfg.id, cfg.type, btn);
+        };
         arena.appendChild(btn);
       });
     }
 
-    // Arena miss tracking
-    document.getElementById('arena').onclick = () => {
-      if (expState === 'run') {
-        misses++;
-        const arena = document.getElementById('arena');
-        arena.style.background = 'rgba(255,0,0,0.05)';
-        setTimeout(() => arena.style.background = 'var(--bg)', 150);
-      }
-    };
-
-    /* ════════════════════════════════════════════
-       ANCHOR CLICK
-    ════════════════════════════════════════════ */
     function onAnchorClick() {
       if (expState !== 'wait-anchor') return;
       expState = 'run';
       document.getElementById('anchor-btn').classList.remove('waiting');
-      showTarget();
+      addLog(`Mission started. Capturing target ${sequence[currentIdx].label}...`);
+      showNext();
     }
 
-    function showTarget() {
+    function showNext() {
       if (currentIdx >= sequence.length) {
         endExperiment();
         return;
       }
-
       const target = sequence[currentIdx];
 
-      // reset all
-      BTN_CONFIG.forEach(cfg => {
-        const b = document.getElementById(`eb-${cfg.id}`);
-        b.classList.remove('active-t', 'hit');
-        b.style.pointerEvents = 'none';
-        b.style.opacity = '0.1';
+      // Dim all
+      document.querySelectorAll('.tgt').forEach(t => {
+        t.classList.remove('active-t');
       });
 
       const tEl = document.getElementById(`eb-${target.id}`);
       tEl.classList.add('active-t');
-      tEl.style.pointerEvents = 'all';
-      tEl.style.opacity = '1';
-      setToast(`HIT: ${target.label}`);
-
       startTime = performance.now();
     }
 
-    /* ════════════════════════════════════════════
-       EXPERIMENT BUTTON CLICK
-    ════════════════════════════════════════════ */
-    function onExpClick(e, id, type, btn) {
+    function onExpClick(id, type, btn) {
       if (expState !== 'run') return;
-      if (id !== sequence[currentIdx].id) return; // wrong button
+      if (id !== sequence[currentIdx].id) return;
 
       const ms = Math.round(performance.now() - startTime);
       timings[type].push(ms);
 
-      // Ripple
-      const arena = document.getElementById('arena');
-      const ar = arena.getBoundingClientRect();
-      const br = btn.getBoundingClientRect();
-      const s = SZ[type];
-      const rip = document.createElement('div');
-      rip.className = 'ripple';
-      rip.style.cssText = `width:${s}px;height:${s}px;left:${br.left - ar.left}px;top:${br.top - ar.top}px;background:rgba(0,0,0,0.1);`;
-      arena.appendChild(rip);
-      setTimeout(() => rip.remove(), 600);
+      addLog(`Target ${sequence[currentIdx].label} captured in ${ms}ms.`, 'done');
 
-      // Badge
-      const badge = document.createElement('div');
-      badge.className = 'time-badge';
-      badge.textContent = ms + 'ms';
-      badge.style.cssText = `left:${br.left - ar.left + s / 2 - 20}px;top:${br.top - ar.top - 10}px;`;
-      arena.appendChild(badge);
-      setTimeout(() => badge.remove(), 900);
-
-      // Animate button out
-      btn.classList.add('hit');
-      btn.classList.remove('target');
-
-      // Update score
       currentIdx++;
-      const all = [...timings.large, ...timings.medium, ...timings.small];
-      document.getElementById('hit-count').textContent = all.length;
-      if (all.length) document.getElementById('avg-time').textContent = avg(all);
+      updateStats();
 
-      expState = 'wait-anchor';
-      setToast('RETURN TO START');
-      document.getElementById('anchor-btn').classList.add('waiting');
-
-      setTimeout(() => {
-        BTN_CONFIG.forEach(cfg => {
-          const b = document.getElementById(`eb-${cfg.id}`);
-          if (b) {
-            b.classList.remove('active-t', 'hit');
-            b.style.pointerEvents = 'none';
-            b.style.opacity = '0.1';
-          }
-        });
-      }, 300);
-    }
-
-    function setToast(text) {
-      document.getElementById('toast').textContent = text;
-    }
-
-    /* ════════════════════════════════════════════
-       END EXPERIMENT → RESULTS
-    ════════════════════════════════════════════ */
-    function endExperiment() {
-      goTo('s4');
-
-      const all = [...timings.large, ...timings.medium, ...timings.small];
-      const aL = avg(timings.large);
-      const aM = avg(timings.medium);
-      const aS = avg(timings.small);
-      const aAll = avg(all);
-      const best = Math.min(...all);
-      const worst = Math.max(...all);
-      const maxT = Math.max(aL || 0, aM || 0, aS || 0) || 1;
-
-      document.getElementById('r-total').textContent = all.length;
-      document.getElementById('r-avg').textContent = aAll ? aAll + 'ms' : '—';
-
-      document.getElementById('t-L').textContent = aL ? aL + 'ms' : '—';
-      document.getElementById('t-M').textContent = aM ? aM + 'ms' : '—';
-      document.getElementById('t-S').textContent = aS ? aS + 'ms' : '—';
-
-      // Animate bars
-      setTimeout(() => {
-        document.getElementById('bar-L').style.width = ((aL || 0) / maxT * 100) + '%';
-        document.getElementById('bar-M').style.width = ((aM || 0) / maxT * 100) + '%';
-        document.getElementById('bar-S').style.width = ((aS || 0) / maxT * 100) + '%';
-
-        document.getElementById('bar-L').style.background = '#000';
-        document.getElementById('bar-M').style.background = '#666';
-        document.getElementById('bar-S').style.background = '#ccc';
-      }, 300);
-
-      // Insight
-      let txt = '';
-      if (aL && aS) {
-        const diff = aS - aL;
-        if (diff > 0) {
-          txt = `Large buttons were <strong>${diff}ms faster</strong> to tap than small ones — exactly what Fitt's Law predicts. Bigger targets reduce both movement time and mental load. Design interfaces with appropriately large interactive zones for speed-critical actions.`;
-        } else {
-          txt = `Impressive precision! Your small-button times rivaled the large ones. Even so, Fitt's Law holds at scale — try again and notice how fatigue gradually reveals the size-speed relationship.`;
-        }
-      } else if (aL && aM && aM > aL) {
-        txt = `Your data confirms Fitt's Law: <strong>larger targets were faster to tap</strong>. Distance and size together determine how long a movement takes — closer, bigger targets are always the winning combo.`;
+      if (currentIdx < sequence.length) {
+        expState = 'wait-anchor';
+        document.getElementById('anchor-btn').classList.add('waiting');
       } else {
-        txt = `Interesting data! Fitt's Law shows that target width and distance both shape movement time. The formula T = a + b·log₂(2D/W) captured by your results reveals the logarithmic nature of human motor control.`;
+        endExperiment();
       }
-      document.getElementById('insight-text').innerHTML = txt;
+    }
 
-      // LEADERBOARD LOGGING (v4.4)
-      const userName = localStorage.getItem('fitts_user_name') || 'Guest Athlete';
-      const leaderboard = JSON.parse(localStorage.getItem('fitts_leaderboard') || '[]');
+    function updateStats() {
+      const all = Object.values(timings).flat();
+      const avg = Math.round(all.reduce((a, b) => a + b, 0) / all.length);
+      document.getElementById('hit-count').textContent = all.length;
+      document.getElementById('avg-time').textContent = avg;
+
+      // Update mini chart
+      const chartRows = document.getElementById('chart-container');
+      const latest = all[all.length - 1];
+      const bar = document.createElement('div');
+      bar.className = 'chart-bar';
+      bar.style.height = (Math.min(latest / 10, 100)) + '%';
+      bar.style.opacity = '1';
+      chartRows.appendChild(bar);
+      if (chartRows.children.length > 20) chartRows.removeChild(chartRows.firstChild);
+    }
+
+    function addLog(msg, status = '') {
+      const log = document.getElementById('mission-log');
+      const item = document.createElement('div');
+      item.className = 'log-item' + (status ? ' ' + status : ' active');
+      item.innerHTML = `<span>[${new Date().toLocaleTimeString('en-GB', { hour12: false })}]</span> ${msg}`;
+      log.prepend(item);
+      if (log.children.length > 15) log.lastChild.remove();
+    }
+
+    function endExperiment() {
+      expState = 'done';
+      document.getElementById('status-txt').textContent = 'RECAP';
+      document.getElementById('results-overlay').classList.remove('hidden');
+
+      const all = Object.values(timings).flat();
+      const avgVal = Math.round(all.reduce((a, b) => a + b, 0) / all.length);
       const acc = Math.round((all.length / (all.length + misses)) * 100);
 
-      const entryBadges = [];
-      let beatMessage = "";
+      document.getElementById('r-avg').textContent = avgVal + 'ms';
+      document.getElementById('r-acc').textContent = acc + '%';
+      document.getElementById('r-total').textContent = all.length;
 
-      if (leaderboard.length === 0) entryBadges.push("First Blood");
-      if (acc === 100) entryBadges.push("Sniper");
-
-      const sortedPrev = [...leaderboard].sort((a, b) => a.avg - b.avg);
-      if (sortedPrev.length > 0) {
-        if (aAll < sortedPrev[0].avg) {
-          entryBadges.push("Leader");
-          if (sortedPrev[0].name !== userName) beatMessage = `You beat ${sortedPrev[0].name}!`;
-        } else {
-          const beaten = sortedPrev.find(e => aAll < e.avg && e.name !== userName);
-          if (beaten) beatMessage = `You beat ${beaten.name}!`;
-        }
-      }
-
+      // Persistence
+      const userName = localStorage.getItem('fitts_user_name') || 'Guest Athlete';
+      const leaderboard = JSON.parse(localStorage.getItem('fitts_leaderboard') || '[]');
       leaderboard.push({
         name: userName,
-        avg: aAll,
+        avg: avgVal,
         acc: acc,
         date: new Date().toISOString(),
-        badges: entryBadges,
-        beat: beatMessage,
         version: "v2"
       });
       localStorage.setItem('fitts_leaderboard', JSON.stringify(leaderboard));
     }
 
-    /* ════════════════════════════════════════════
-       RESET
-    ════════════════════════════════════════════ */
-    function resetToStart() {
-      goTo('s1');
-    }
+    // Arena Miss
+    document.getElementById('arena').onclick = () => {
+      if (expState === 'run') {
+        misses++;
+        addLog('ARENA MISS REGISTERED', 'failed');
+      }
+    };
   </script>
 </body>
 

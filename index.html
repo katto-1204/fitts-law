@@ -354,6 +354,40 @@
             gap: 12px;
         }
 
+        .card:hover .card-arrow {
+            color: var(--acc);
+            gap: 12px;
+        }
+
+        .card-difficulty {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-family: var(--fmono);
+            font-size: 10px;
+            font-weight: 900;
+            padding: 4px 10px;
+            border-radius: 6px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            z-index: 5;
+        }
+
+        .card-difficulty.easy {
+            background: rgba(0, 255, 127, 0.1);
+            color: #00FF7F;
+        }
+
+        .card-difficulty.average {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .card-difficulty.hard {
+            background: rgba(252, 76, 2, 0.2);
+            color: #FC4C02;
+        }
+
         .card-arrow svg {
             transition: transform 0.2s;
         }
@@ -673,13 +707,14 @@
 
             <!-- V1 -->
             <a href="fitts-law-v1.html" class="card">
+                <div class="card-difficulty easy">EASY</div>
                 <div class="card-version">V1</div>
                 <span class="card-label">Version 1</span>
                 <div class="card-title">MOBILE PROTOTYPE</div>
-                <p class="card-desc">Phone-shell UI with splash screen, instructions, and tap-based target experiment.
-                </p>
+                <p class="card-desc">Material-inspired glass interface. Standard movement benchmarks for mobile tap
+                    interactions.</p>
                 <div class="card-arrow">
-                    Launch
+                    Start Training
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                         <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
                             stroke-linejoin="round" />
@@ -689,12 +724,14 @@
 
             <!-- V2 -->
             <a href="fitts-law-v2.html" class="card">
-                <div class="card-version">V2</div>
+                <div class="card-difficulty average">AVERAGE</div>
+                <div class="card-version" style="background: #A855F7; color: #fff;">V2</div>
                 <span class="card-label">Version 2</span>
-                <div class="card-title">INTERACTIVE PROTOTYPE</div>
-                <p class="card-desc">Enhanced arena with circular targets, detailed scoreboard, and rich analytics.</p>
+                <div class="card-title">VIPER COMMAND</div>
+                <p class="card-desc">Integrated tactical dashboard. BREAKING the mobile shell for a full-scale
+                    diagnostic cockpit experience.</p>
                 <div class="card-arrow">
-                    Launch
+                    Launch Command
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                         <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
                             stroke-linejoin="round" />
@@ -704,13 +741,14 @@
 
             <!-- V3 -->
             <a href="fitts-law-v3.html" class="card">
+                <div class="card-difficulty hard">HARD</div>
                 <div class="card-version">V3</div>
                 <span class="card-label">Version 3</span>
-                <div class="card-title">STRAVA PERFORMANCE</div>
-                <p class="card-desc">High-intensity athletic UI with GPS visualization, BPM, and performance analytics.
+                <div class="card-title">STRAVA ARENA</div>
+                <p class="card-desc">Hardcore athletic simulator. Moving targets and high-intensity segments for pros.
                 </p>
                 <div class="card-arrow">
-                    Launch
+                    Hardcore Entry
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                         <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
                             stroke-linejoin="round" />
