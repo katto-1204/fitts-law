@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitts' Law Simulator — Home</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #07070f;
+            --surf: #0f0f1e;
+            --surf2: #181828;
+            --border: rgba(255, 255, 255, 0.07);
+            --acc: #e8ff47;
+            --blue: #00d4ff;
+            --pink: #ff6b9d;
+            --text: #f0f0f8;
+            --muted: #3e3e60;
+            --muted2: #7070a0;
+            --fdisplay: 'Bebas Neue', sans-serif;
+            --fmono: 'Space Mono', monospace;
+            --fbody: 'DM Sans', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: var(--bg);
+            font-family: var(--fbody);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Ambient glow */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -30%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 600px;
+            background: radial-gradient(ellipse at center, rgba(232, 255, 71, 0.06) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 820px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Tag badge */
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(232, 255, 71, 0.08);
+            border: 1px solid rgba(232, 255, 71, 0.22);
+            color: var(--acc);
+            font-family: var(--fmono);
+            font-size: 10px;
+            letter-spacing: 0.18em;
+            padding: 6px 14px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            margin-bottom: 28px;
+            animation: fadeUp 0.5s ease forwards;
+            opacity: 0;
+        }
+
+        .tag-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--acc);
+            animation: blink 1.4s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: 0.15
+            }
+        }
+
+        /* Title */
+        .hero-title {
+            font-family: var(--fdisplay);
+            font-size: clamp(60px, 12vw, 120px);
+            line-height: 0.88;
+            color: var(--text);
+            text-align: center;
+            letter-spacing: 2px;
+            animation: fadeUp 0.5s 0.1s ease forwards;
+            opacity: 0;
+        }
+
+        .hero-title em {
+            color: var(--acc);
+            font-style: normal;
+            display: block;
+        }
+
+        /* Subtitle */
+        .hero-sub {
+            font-size: clamp(13px, 2vw, 16px);
+            color: var(--muted2);
+            line-height: 1.65;
+            font-weight: 300;
+            text-align: center;
+            max-width: 420px;
+            margin: 24px 0 12px;
+            animation: fadeUp 0.5s 0.2s ease forwards;
+            opacity: 0;
+        }
+
+        /* Formula strip */
+        .formula-strip {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--surf);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 22px;
+            margin: 12px 0 40px;
+            animation: fadeUp 0.5s 0.3s ease forwards;
+            opacity: 0;
+        }
+
+        .formula-icon {
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .formula-text {
+            font-family: var(--fmono);
+            font-size: clamp(11px, 1.5vw, 13px);
+            color: rgba(232, 255, 71, 0.55);
+            letter-spacing: 0.05em;
+        }
+
+        .formula-text span {
+            color: var(--acc);
+        }
+
+        /* Section label */
+        .section-label {
+            font-family: var(--fmono);
+            font-size: 10px;
+            color: var(--muted);
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            width: 100%;
+            animation: fadeUp 0.5s 0.35s ease forwards;
+            opacity: 0;
+        }
+
+        .section-label::before,
+        .section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* Cards grid */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            width: 100%;
+        }
+
+        @media (max-width: 680px) {
+            .cards {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+        }
+
+        /* Card */
+        .card {
+            background: var(--surf);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 28px 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+        }
+
+        .card:nth-child(1) {
+            animation: fadeUp 0.5s 0.4s ease forwards;
+        }
+
+        .card:nth-child(2) {
+            animation: fadeUp 0.5s 0.5s ease forwards;
+        }
+
+        .card:nth-child(3) {
+            animation: fadeUp 0.5s 0.6s ease forwards;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 22px;
+            background: radial-gradient(circle at 30% 20%, rgba(232, 255, 71, 0.04) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(232, 255, 71, 0.2);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(232, 255, 71, 0.06);
+        }
+
+        .card:active {
+            transform: translateY(-2px) scale(0.98);
+        }
+
+        /* Card — version number */
+        .card-version {
+            font-family: var(--fdisplay);
+            font-size: 52px;
+            line-height: 1;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card:nth-child(1) .card-version {
+            color: var(--acc);
+        }
+
+        .card:nth-child(2) .card-version {
+            color: var(--blue);
+        }
+
+        .card:nth-child(3) .card-version {
+            color: var(--pink);
+        }
+
+        .card-label {
+            font-family: var(--fmono);
+            font-size: 9px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 6px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card:nth-child(1) .card-label {
+            color: var(--acc);
+            background: rgba(232, 255, 71, 0.1);
+            border: 1px solid rgba(232, 255, 71, 0.2);
+        }
+
+        .card:nth-child(2) .card-label {
+            color: var(--blue);
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .card:nth-child(3) .card-label {
+            color: var(--pink);
+            background: rgba(255, 107, 157, 0.1);
+            border: 1px solid rgba(255, 107, 157, 0.2);
+        }
+
+        .card-title {
+            font-family: var(--fdisplay);
+            font-size: 28px;
+            color: var(--text);
+            letter-spacing: 1px;
+            line-height: 1;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-desc {
+            font-size: 13px;
+            color: var(--muted2);
+            line-height: 1.55;
+            font-weight: 300;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Arrow */
+        .card-arrow {
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--fmono);
+            font-size: 10px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            transition: color 0.2s, gap 0.2s;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card:hover .card-arrow {
+            color: var(--acc);
+            gap: 12px;
+        }
+
+        .card-arrow svg {
+            transition: transform 0.2s;
+        }
+
+        .card:hover .card-arrow svg {
+            transform: translateX(4px);
+        }
+
+        /* Decorative rings */
+        .rings {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 600px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .ring-1 {
+            width: 500px;
+            height: 500px;
+            border-color: rgba(232, 255, 71, 0.03);
+        }
+
+        .ring-2 {
+            width: 350px;
+            height: 350px;
+            border-color: rgba(0, 212, 255, 0.04);
+        }
+
+        .ring-3 {
+            width: 200px;
+            height: 200px;
+            border-color: rgba(255, 107, 157, 0.05);
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 48px;
+            font-family: var(--fmono);
+            font-size: 10px;
+            color: var(--muted);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            animation: fadeUp 0.5s 0.75s ease forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Decorative rings -->
+    <div class="rings">
+        <div class="ring ring-1"></div>
+        <div class="ring ring-2"></div>
+        <div class="ring ring-3"></div>
+    </div>
+
+    <div class="container">
+
+        <!-- Tag -->
+        <div class="tag">
+            <span class="tag-dot"></span>
+            HCI Experiment · 2026
+        </div>
+
+        <!-- Hero -->
+        <h1 class="hero-title">FITTS'<em>LAW</em></h1>
+        <p class="hero-sub">Explore how target size and distance affect interaction time. Choose a simulator version
+            below to begin your experiment.</p>
+
+        <!-- Formula -->
+        <div class="formula-strip">
+            <span class="formula-icon">⚡</span>
+            <span class="formula-text"><span>T</span> = a + b · log₂(<span>2D / W</span>)</span>
+        </div>
+
+        <!-- Section label -->
+        <div class="section-label">Choose a Version</div>
+
+        <!-- Cards -->
+        <div class="cards">
+
+            <!-- V1 -->
+            <a href="fitts-law-v1.html" class="card">
+                <div class="card-version">V1</div>
+                <span class="card-label">Version 1</span>
+                <div class="card-title">MOBILE PROTOTYPE</div>
+                <p class="card-desc">Phone-shell UI with splash screen, instructions, and tap-based target experiment.
+                </p>
+                <div class="card-arrow">
+                    Launch
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                </div>
+            </a>
+
+            <!-- V2 -->
+            <a href="fitts-law-v2.html" class="card">
+                <div class="card-version">V2</div>
+                <span class="card-label">Version 2</span>
+                <div class="card-title">INTERACTIVE PROTOTYPE</div>
+                <p class="card-desc">Enhanced arena with circular targets, detailed scoreboard, and rich analytics.</p>
+                <div class="card-arrow">
+                    Launch
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                </div>
+            </a>
+
+            <!-- V3 -->
+            <a href="fitts-law-v3.html" class="card">
+                <div class="card-version">V3</div>
+                <span class="card-label">Version 3</span>
+                <div class="card-title">IPHONE PROTOTYPE</div>
+                <p class="card-desc">Realistic iPhone bezel with Dynamic Island, hardware buttons, and polished results.
+                </p>
+                <div class="card-arrow">
+                    Launch
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                </div>
+            </a>
+
+        </div>
+
+        <div class="footer">HCI · Fitts' Law Experiment Suite</div>
+
+    </div>
+
+</body>
+
+</html>
