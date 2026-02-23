@@ -4,10 +4,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fitt's Law — iPhone Prototype</title>
+  <title>Fitt's Law — Performance Trial</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
-    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap"
     rel="stylesheet">
   <style>
     /* ═══════════════════════════ RESET & BASE ═══════════════════════════ */
@@ -20,33 +20,34 @@
     }
 
     :root {
-      --bg: #07070f;
-      --surf: #0f0f1e;
-      --surf2: #181828;
-      --border: rgba(255, 255, 255, 0.07);
-      --acc: #e8ff47;
-      --blue: #00d4ff;
-      --pink: #ff6b9d;
-      --orange: #ff6b35;
-      --text: #f0f0f8;
-      --muted: #3e3e60;
-      --muted2: #7070a0;
-      --fdisplay: 'Bebas Neue', sans-serif;
+      --bg: #121212;
+      --surf: rgba(255, 255, 255, 0.05);
+      --glass: rgba(255, 255, 255, 0.08);
+      --glass-border: rgba(255, 255, 255, 0.12);
+      --border: rgba(255, 255, 255, 0.1);
+      --acc: #FC4C02;
+      /* Strava Orange */
+      --acc-gradient: linear-gradient(135deg, #FC4C02 0%, #E34202 100%);
+      --text: #ffffff;
+      --muted: #888888;
+      --muted2: #aaaaaa;
+      --fdisplay: 'Outfit', sans-serif;
       --fmono: 'Space Mono', monospace;
-      --fbody: 'DM Sans', sans-serif;
+      --fbody: 'Outfit', sans-serif;
     }
 
     html,
     body {
       min-height: 100vh;
-      background: #050510;
+      background: #000;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       font-family: var(--fbody);
-      gap: 28px;
-      padding: 32px 20px;
+      margin: 0;
+      overflow: hidden;
+      color: var(--text);
     }
 
     /* ═══════════════════════════ PHONE SHELL ═══════════════════════════ */
@@ -54,118 +55,25 @@
       position: relative;
     }
 
-    /* Outer metallic bezel */
     .phone-bezel {
       width: 393px;
       height: 852px;
-      background: linear-gradient(160deg, #3a3a4a 0%, #1c1c28 40%, #2a2a3c 100%);
+      background: #000;
       border-radius: 54px;
-      padding: 4px;
+      padding: 12px;
       box-shadow:
-        0 0 0 1px rgba(255, 255, 255, 0.12),
-        inset 0 1px 0 rgba(255, 255, 255, 0.18),
-        inset 0 -1px 0 rgba(0, 0, 0, 0.4),
-        0 40px 100px rgba(0, 0, 0, 0.8),
-        0 0 120px rgba(232, 255, 71, 0.04);
+        0 0 0 1px rgba(255, 255, 255, 0.1),
+        0 30px 60px rgba(0, 0, 0, 0.5);
       position: relative;
     }
 
-    /* Side buttons — left */
-    .side-btn {
-      position: absolute;
-      background: linear-gradient(180deg, #2c2c3c, #1a1a28);
-      border-radius: 3px;
-      box-shadow: -1px 0 0 rgba(255, 255, 255, 0.1), 1px 0 0 rgba(0, 0, 0, 0.4);
-    }
-
-    .btn-silent {
-      width: 4px;
-      height: 34px;
-      left: -4px;
-      top: 140px;
-      border-radius: 2px 0 0 2px;
-    }
-
-    .btn-vol-up {
-      width: 4px;
-      height: 60px;
-      left: -4px;
-      top: 196px;
-      border-radius: 2px 0 0 2px;
-    }
-
-    .btn-vol-dn {
-      width: 4px;
-      height: 60px;
-      left: -4px;
-      top: 272px;
-      border-radius: 2px 0 0 2px;
-    }
-
-    /* Side button — right (power) */
-    .btn-power {
-      width: 4px;
-      height: 84px;
-      right: -4px;
-      top: 210px;
-      border-radius: 0 2px 2px 0;
-      background: linear-gradient(180deg, #2c2c3c, #1a1a28);
-      box-shadow: 1px 0 0 rgba(255, 255, 255, 0.1), -1px 0 0 rgba(0, 0, 0, 0.4);
-    }
-
-    /* Inner screen glass */
     .phone-screen {
       width: 100%;
       height: 100%;
       background: var(--bg);
-      border-radius: 50px;
+      border-radius: 42px;
       overflow: hidden;
       position: relative;
-      /* Glass reflection */
-      background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, transparent 50%);
-    }
-
-    /* ═══════════════════════════ DYNAMIC ISLAND ═══════════════════════════ */
-    .dynamic-island {
-      position: absolute;
-      top: 12px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 120px;
-      height: 34px;
-      background: #000;
-      border-radius: 20px;
-      z-index: 1000;
-      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 14px;
-    }
-
-    .di-camera {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #111;
-      border: 1px solid #1a1a1a;
-      position: relative;
-    }
-
-    .di-camera::after {
-      content: '';
-      position: absolute;
-      inset: 2px;
-      border-radius: 50%;
-      background: #0d2a1a;
-    }
-
-    .di-sensor {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #0a1a10;
-      border: 1px solid #0f2a18;
     }
 
     /* ═══════════════════════════ STATUS BAR ═══════════════════════════ */
@@ -178,137 +86,17 @@
       display: flex;
       align-items: flex-end;
       justify-content: space-between;
-      padding: 0 28px 8px;
+      padding: 0 32px 8px;
       z-index: 100;
       pointer-events: none;
     }
 
     .status-time {
-      font-family: var(--fbody);
       font-size: 15px;
-      font-weight: 600;
-      color: var(--text);
-      letter-spacing: -0.3px;
+      font-weight: 700;
     }
 
-    .status-icons {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    /* Signal bars */
-    .signal {
-      display: flex;
-      align-items: flex-end;
-      gap: 1.5px;
-      height: 12px;
-    }
-
-    .signal-bar {
-      width: 3px;
-      background: var(--text);
-      border-radius: 1px;
-    }
-
-    .signal-bar:nth-child(1) {
-      height: 3px;
-    }
-
-    .signal-bar:nth-child(2) {
-      height: 5px;
-    }
-
-    .signal-bar:nth-child(3) {
-      height: 8px;
-    }
-
-    .signal-bar:nth-child(4) {
-      height: 11px;
-      opacity: 0.3;
-    }
-
-    /* WiFi icon */
-    .wifi {
-      width: 16px;
-      height: 12px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 2px;
-    }
-
-    .wifi-arc {
-      border: 2px solid var(--text);
-      border-bottom: none;
-      border-radius: 50% 50% 0 0 / 100% 100% 0 0;
-    }
-
-    .wifi-arc:nth-child(1) {
-      width: 14px;
-      height: 7px;
-    }
-
-    .wifi-arc:nth-child(2) {
-      width: 9px;
-      height: 5px;
-    }
-
-    .wifi-arc:nth-child(3) {
-      width: 3px;
-      height: 3px;
-      border-radius: 50%;
-      background: var(--text);
-      border: none;
-    }
-
-    /* Battery */
-    .battery {
-      display: flex;
-      align-items: center;
-      gap: 1px;
-    }
-
-    .battery-body {
-      width: 22px;
-      height: 12px;
-      border: 1.5px solid var(--text);
-      border-radius: 3px;
-      padding: 2px;
-      display: flex;
-      align-items: center;
-    }
-
-    .battery-fill {
-      width: 75%;
-      height: 100%;
-      background: var(--text);
-      border-radius: 1px;
-    }
-
-    .battery-tip {
-      width: 2px;
-      height: 5px;
-      background: rgba(255, 255, 255, 0.5);
-      border-radius: 0 1px 1px 0;
-    }
-
-    /* ═══════════════════════════ HOME INDICATOR ═══════════════════════════ */
-    .home-indicator {
-      position: absolute;
-      bottom: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 130px;
-      height: 5px;
-      background: rgba(255, 255, 255, 0.22);
-      border-radius: 3px;
-      z-index: 100;
-      pointer-events: none;
-    }
-
-    /* ═══════════════════════════ SCREEN SYSTEM ═══════════════════════════ */
+    /* ═══════════════════════════ NAVIGATION ═══════════════════════════ */
     .screen {
       position: absolute;
       inset: 0;
@@ -317,60 +105,13 @@
       transition: opacity 0.4s ease, transform 0.4s ease;
       overflow: hidden;
       padding-top: 54px;
-      /* status bar */
       padding-bottom: 30px;
-      /* home indicator space */
     }
 
     .screen.hidden {
       opacity: 0;
       pointer-events: none;
-      transform: translateX(24px);
-    }
-
-    /* ═══════════════════════════ NAV DOTS ═══════════════════════════ */
-    .nav-dots {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .nav-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.15);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      cursor: pointer;
-      transition: all 0.3s ease;
-      position: relative;
-    }
-
-    .nav-dot.active {
-      background: var(--acc);
-      border-color: var(--acc);
-      transform: scale(1.3);
-      box-shadow: 0 0 10px rgba(232, 255, 71, 0.5);
-    }
-
-    .nav-dot:hover:not(.active) {
-      background: rgba(255, 255, 255, 0.3);
-    }
-
-    .nav-dot-label {
-      font-family: var(--fmono);
-      font-size: 9px;
-      color: rgba(255, 255, 255, 0.3);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      text-align: center;
-    }
-
-    .nav-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
+      transform: scale(0.96);
     }
 
     /* ═══════════════════════════ SHARED UI ═══════════════════════════ */
@@ -378,1637 +119,1026 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: rgba(232, 255, 71, 0.08);
-      border: 1px solid rgba(232, 255, 71, 0.22);
+      background: rgba(252, 76, 2, 0.1);
+      border: 1px solid rgba(252, 76, 2, 0.2);
       color: var(--acc);
-      font-family: var(--fmono);
-      font-size: 9px;
-      letter-spacing: 0.18em;
-      padding: 5px 11px;
-      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 6px 14px;
+      border-radius: 50px;
       text-transform: uppercase;
-    }
-
-    .tag-dot {
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background: var(--acc);
-      animation: blink 1.4s ease-in-out infinite;
-    }
-
-    @keyframes blink {
-
-      0%,
-      100% {
-        opacity: 1
-      }
-
-      50% {
-        opacity: 0.15
-      }
+      letter-spacing: 0.1em;
     }
 
     .cta-btn {
       width: 100%;
-      height: 56px;
-      background: var(--acc);
-      color: #07070f;
+      height: 52px;
+      background: var(--acc-gradient);
+      color: #fff;
       border: none;
-      border-radius: 16px;
-      font-family: var(--fmono);
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.1em;
+      border-radius: 6px;
+      /* Strava uses slightly sharper corners on some buttons, but let's go rounded-ish */
+      border-radius: 26px;
+      font-family: var(--fbody);
+      font-size: 15px;
+      font-weight: 900;
       cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.2s;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
-    }
-
-    .cta-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 35px rgba(232, 255, 71, 0.32);
+      transition: transform 0.1s, opacity 0.2s;
+      text-transform: uppercase;
     }
 
     .cta-btn:active {
-      transform: scale(0.97);
+      transform: scale(0.98);
+      opacity: 0.9;
     }
 
     .divider {
       height: 1px;
       background: var(--border);
-      margin: 0 24px;
+      margin: 16px 26px;
       flex-shrink: 0;
     }
 
-    /* ═══════════════════════════ SCREEN 1 — TITLE ═══════════════════════════ */
-    #s1 {
-      justify-content: space-between;
-      padding-left: 0;
-      padding-right: 0;
+    /* ═══════════════════════════ v3.1 ATHLETIC UI ═══════════════════════════ */
+    .bpm-box {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 0, 0, 0.2);
     }
 
-    .s1-top {
-      padding: 8px 26px 0;
+    .bpm-icon {
+      color: #ff3b30;
+      font-size: 14px;
+      animation: heart-beat 0.8s infinite;
+    }
+
+    @keyframes heart-beat {
+      0% {
+        transform: scale(1);
+      }
+
+      15% {
+        transform: scale(1.25);
+      }
+
+      30% {
+        transform: scale(1);
+      }
+
+      45% {
+        transform: scale(1.15);
+      }
+
+      60% {
+        transform: scale(1);
+      }
+    }
+
+    .bpm-val {
+      font-size: 14px;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .progress-wrap {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      position: absolute;
+      top: 0;
+      left: 0;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      background: var(--acc);
+      transition: width 0.3s ease;
+    }
+
+    .splits-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      background: var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 12px 26px 24px;
+      border: 1px solid var(--border);
+    }
+
+    .split-row {
+      background: var(--bg);
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 16px;
+      align-items: center;
+    }
+
+    .split-name {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--muted2);
+    }
+
+    .split-val {
+      font-size: 14px;
+      font-weight: 900;
+      color: var(--text);
+    }
+
+    .pb-badge {
+      display: none;
+      background: #ffcc00;
+      color: #000;
+      font-size: 10px;
+      font-weight: 900;
+      padding: 4px 12px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      align-self: flex-start;
+      margin-left: 26px;
+    }
+
+    .pb-badge.active {
+      display: inline-flex;
+    }
+
+    /* ═══════════════════════════ SCREEN 1 — SPLASH ═══════════════════════════ */
+    #s1 {
+      padding: 54px 26px 30px;
+    }
+
+    .s1-hero {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
 
     .s1-title {
-      font-family: var(--fdisplay);
-      font-size: 90px;
-      line-height: 0.88;
-      color: var(--text);
-      margin: 16px 0 14px;
+      font-size: 80px;
+      font-weight: 900;
+      line-height: 0.9;
+      letter-spacing: -3px;
+      text-transform: uppercase;
+      margin: 20px 0;
     }
 
     .s1-title em {
+      display: block;
       color: var(--acc);
       font-style: normal;
-      display: block;
     }
 
-    .s1-body {
-      font-size: 12px;
-      color: var(--muted2);
-      line-height: 1.65;
-      font-weight: 300;
-      max-width: 230px;
-    }
-
-    /* Rings graphic */
-    .s1-graphic {
-      flex: 1;
-      position: relative;
-      overflow: hidden;
-      margin: 12px 26px;
-      min-height: 0;
-    }
-
-    .ring {
-      position: absolute;
-      border-radius: 50%;
-      border: 1px solid;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-
-    .ring-1 {
-      width: 230px;
-      height: 230px;
-      border-color: rgba(232, 255, 71, 0.08);
-    }
-
-    .ring-2 {
-      width: 160px;
-      height: 160px;
-      border-color: rgba(0, 212, 255, 0.10);
-    }
-
-    .ring-3 {
-      width: 96px;
-      height: 96px;
-      border-color: rgba(255, 107, 157, 0.12);
-    }
-
-    .ring-4 {
-      width: 40px;
-      height: 40px;
-      background: rgba(232, 255, 71, 0.07);
-      border: none;
-    }
-
-    .formula-text {
-      position: absolute;
-      bottom: 8px;
-      left: 0;
-      right: 0;
-      text-align: center;
-      font-family: var(--fmono);
-      font-size: 11px;
-      color: rgba(232, 255, 71, 0.35);
-      letter-spacing: 0.05em;
-    }
-
-    .s1-bottom {
-      padding: 0 26px;
-    }
-
-    .chips-row {
+    .glass-badge {
+      width: 100px;
+      height: 100px;
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 24px;
+      border: 1px solid var(--glass-border);
       display: flex;
-      gap: 8px;
-      margin-bottom: 14px;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 32px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
     }
 
-    .chip {
-      flex: 1;
-      background: var(--surf);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 10px 6px;
-      text-align: center;
-    }
-
-    .chip-val {
-      font-family: var(--fdisplay);
-      font-size: 28px;
-      line-height: 1;
-    }
-
-    .chip-lbl {
-      font-family: var(--fmono);
-      font-size: 8px;
-      color: var(--muted2);
-      letter-spacing: 0.1em;
-      margin-top: 2px;
-      display: block;
+    .glass-badge::after {
+      content: '▲';
+      color: var(--acc);
+      font-size: 42px;
     }
 
     /* ═══════════════════════════ SCREEN 2 — INSTRUCTIONS ═══════════════════════════ */
     #s2 {
-      gap: 0;
-    }
-
-    .s2-head {
-      padding: 6px 26px 16px;
-      flex-shrink: 0;
+      padding: 54px 26px 30px;
     }
 
     .s2-title {
-      font-family: var(--fdisplay);
-      font-size: 48px;
-      line-height: 0.95;
-      color: var(--text);
-      margin: 10px 0 6px;
-    }
-
-    .s2-title em {
-      color: var(--acc);
-      font-style: normal;
-    }
-
-    .s2-sub {
-      font-size: 11px;
-      color: var(--muted2);
-      font-weight: 300;
-    }
-
-    .s2-scroll {
-      flex: 1;
-      overflow-y: auto;
-      min-height: 0;
-    }
-
-    .s2-scroll::-webkit-scrollbar {
-      display: none;
-    }
-
-    .section {
-      padding: 0 26px;
-      margin-bottom: 18px;
-    }
-
-    .section-label {
-      font-family: var(--fmono);
-      font-size: 9px;
-      color: var(--muted);
-      letter-spacing: 0.18em;
+      font-size: 42px;
+      font-weight: 900;
+      line-height: 1;
       text-transform: uppercase;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      margin-bottom: 24px;
+      letter-spacing: -1px;
     }
 
-    .section-label::after {
-      content: '';
+    .card-list {
       flex: 1;
-      height: 1px;
-      background: var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
     }
 
-    /* Size showcase */
-    .showcase {
-      background: var(--surf);
+    .glass-card {
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
       border-radius: 16px;
       padding: 16px;
       display: flex;
-      flex-direction: column;
-      gap: 12px;
+      gap: 16px;
     }
 
-    .sc-row {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .sc-circle {
-      border-radius: 50%;
+    .card-icon {
+      font-size: 20px;
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: var(--fmono);
-      font-weight: 700;
       flex-shrink: 0;
     }
 
-    .sc-L {
-      width: 52px;
-      height: 52px;
-      font-size: 9px;
-      background: rgba(232, 255, 71, 0.1);
-      color: var(--acc);
-      border: 2px solid rgba(232, 255, 71, 0.3);
+    .card-info h3 {
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 4px;
     }
 
-    .sc-M {
-      width: 38px;
-      height: 38px;
-      font-size: 8px;
-      background: rgba(0, 212, 255, 0.1);
-      color: var(--blue);
-      border: 2px solid rgba(0, 212, 255, 0.3);
-    }
-
-    .sc-S {
-      width: 26px;
-      height: 26px;
-      font-size: 7px;
-      background: rgba(255, 107, 157, 0.1);
-      color: var(--pink);
-      border: 2px solid rgba(255, 107, 157, 0.3);
-    }
-
-    .sc-info {
-      flex: 1;
-    }
-
-    .sc-name {
+    .card-info p {
       font-size: 12px;
-      color: var(--text);
-      font-weight: 600;
-      margin-bottom: 1px;
-    }
-
-    .sc-desc {
-      font-size: 10px;
-      color: var(--muted2);
-      font-weight: 300;
-    }
-
-    .sc-badge {
-      font-family: var(--fmono);
-      font-size: 9px;
-      color: var(--muted);
-      background: var(--surf2);
-      padding: 3px 7px;
-      border-radius: 5px;
-    }
-
-    /* Principle cards */
-    .principles {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .p-card {
-      background: var(--surf);
-      border-radius: 12px;
-      padding: 12px 14px;
-      display: flex;
-      gap: 12px;
-      border-left: 3px solid;
-    }
-
-    .p-card.p1 {
-      border-color: var(--acc);
-    }
-
-    .p-card.p2 {
-      border-color: var(--blue);
-    }
-
-    .p-card.p3 {
-      border-color: var(--pink);
-    }
-
-    .p-icon {
-      font-size: 16px;
-      flex-shrink: 0;
-      margin-top: 1px;
-    }
-
-    .p-title {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text);
-      margin-bottom: 2px;
-    }
-
-    .p-desc {
-      font-size: 10px;
-      color: var(--muted2);
-      line-height: 1.45;
-      font-weight: 300;
-    }
-
-    /* Tips */
-    .tips-box {
-      background: rgba(232, 255, 71, 0.04);
-      border: 1px solid rgba(232, 255, 71, 0.14);
-      border-radius: 14px;
-      padding: 14px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .tip-row {
-      display: flex;
-      gap: 10px;
-      align-items: flex-start;
-    }
-
-    .tip-num {
-      font-family: var(--fmono);
-      font-size: 9px;
-      color: #07070f;
-      font-weight: 700;
-      background: var(--acc);
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .tip-text {
-      font-size: 11px;
       color: var(--muted2);
       line-height: 1.4;
-      font-weight: 300;
     }
 
-    .tip-text b {
-      color: var(--text);
-      font-weight: 500;
-    }
-
-    .s2-foot {
-      padding: 10px 26px 0;
-      flex-shrink: 0;
-    }
-
-    /* ═══════════════════════════ SCREEN 3 — EXPERIMENT ═══════════════════════════ */
+    /* ═══════════════════════════ SCREEN 3 — ARENA ═══════════════════════════ */
     #s3 {
-      padding-bottom: 0;
+      background: #000;
     }
 
-    .exp-header {
-      padding: 4px 20px 8px;
+    .arena-header {
+      padding: 64px 26px 20px;
+      border-bottom: 1px solid var(--border);
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      flex-shrink: 0;
+      align-items: flex-end;
     }
 
-    .exp-label {
-      font-family: var(--fmono);
-      font-size: 9px;
-      color: var(--muted);
+    .arena-label {
+      font-size: 11px;
+      font-weight: 900;
+      color: var(--acc);
+      text-transform: uppercase;
       letter-spacing: 0.1em;
     }
 
-    .scoreboard {
+    .stats-row {
       display: flex;
-      gap: 7px;
+      gap: 24px;
     }
 
-    .score-pill {
-      background: var(--surf);
-      border: 1px solid var(--border);
-      border-radius: 9px;
-      padding: 4px 10px;
-      text-align: center;
+    .stat-pill {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
     }
 
-    .score-val {
-      font-family: var(--fdisplay);
-      font-size: 18px;
-      color: var(--acc);
+    .stat-val {
+      font-size: 32px;
+      font-weight: 900;
       line-height: 1;
-      display: block;
     }
 
-    .score-lbl {
-      font-family: var(--fmono);
-      font-size: 7px;
-      color: var(--muted2);
-      letter-spacing: 0.08em;
-    }
-
-    .progress-track {
-      height: 2px;
-      background: var(--surf2);
-      margin: 0 20px 6px;
-      border-radius: 2px;
-      flex-shrink: 0;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--acc), var(--blue));
-      border-radius: 2px;
-      transition: width 0.4s ease;
-      width: 0%;
-    }
-
-    .exp-legend {
-      display: flex;
-      gap: 10px;
-      padding: 0 20px 4px;
-      flex-shrink: 0;
-    }
-
-    .leg-item {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 8px;
+    .stat-lbl {
+      font-size: 9px;
+      font-weight: 700;
       color: var(--muted);
-      font-family: var(--fmono);
+      text-transform: uppercase;
+      margin-top: 2px;
     }
 
-    .leg-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-    }
-
-    /* Arena */
     .arena {
       flex: 1;
       position: relative;
       overflow: hidden;
-      min-height: 0;
     }
 
-    /* Toast */
+    .tgt {
+      position: absolute;
+      border-radius: 50%;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 12px;
+      color: #000;
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.1s, opacity 0.2s;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    .tgt.active-t {
+      opacity: 1;
+      pointer-events: auto;
+      background: var(--acc);
+      color: #fff;
+    }
+
     .toast {
       position: absolute;
-      bottom: 106px;
+      top: 50%;
       left: 50%;
-      transform: translateX(-50%);
-      background: rgba(15, 15, 30, 0.96);
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      backdrop-filter: blur(10px);
-      padding: 8px 14px;
-      border-radius: 10px;
-      font-size: 9px;
+      transform: translate(-50%, -50%);
+      font-size: 14px;
+      font-weight: 900;
+      color: rgba(255, 255, 255, 0.2);
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      pointer-events: none;
+    }
+
+    .anchor-zone {
+      padding: 32px 26px;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: center;
+    }
+
+    .anchor-btn {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--acc);
+      color: #fff;
+      border: none;
+      font-weight: 900;
+      font-size: 13px;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(252, 76, 2, 0.3);
+    }
+
+    .anchor-btn.waiting {
+      background: #333;
+      animation: pulse 1s infinite alternate;
+    }
+
+    @keyframes pulse {
+      from {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      to {
+        transform: scale(1.05);
+        opacity: 0.8;
+      }
+    }
+
+    /* ═══════════════════════════ SCREEN 4 — RESULTS ═══════════════════════════ */
+    #s4 {
+      padding: 54px 0 0;
+      background: #000;
+      overflow-y: auto;
+    }
+
+    .results-head {
+      padding: 0 26px 24px;
+    }
+
+    .res-eyebrow {
+      font-size: 11px;
+      font-weight: 900;
       color: var(--muted2);
-      white-space: nowrap;
-      z-index: 20;
-      font-family: var(--fmono);
-      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .res-title {
+      font-size: 52px;
+      font-weight: 900;
+      line-height: 0.95;
+      text-transform: uppercase;
+      letter-spacing: -2px;
+    }
+
+    .map-placeholder {
+      width: 100%;
+      height: 200px;
+      background: #111;
+      background-image:
+        radial-gradient(circle at 2px 2px, rgba(255, 255, 255, 0.05) 1px, transparent 0);
+      background-size: 20px 20px;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .map-placeholder::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, #000 0%, transparent 40%, transparent 100%);
+    }
+
+    .gps-path {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .gps-line {
+      fill: none;
+      stroke: var(--acc);
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      filter: drop-shadow(0 0 8px rgba(252, 76, 2, 0.6));
+    }
+
+    .gps-marker {
+      fill: #fff;
+      stroke: var(--acc);
+      stroke-width: 2;
+    }
+
+    .gps-marker.end {
+      fill: var(--acc);
+    }
+
+    .results-stats {
+      padding: 0 26px 40px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .res-card {
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      padding: 20px;
+      border-radius: 16px;
+      border: 1px solid var(--glass-border);
+    }
+
+    .res-card.wide {
+      grid-column: 1 / -1;
+    }
+
+    /* ═══════════════════════════ v3.2 MAP & ARENA ═══════════════════════════ */
+    .arena-bg-map {
+      position: absolute;
+      inset: 0;
+      opacity: 0.15;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .arena-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(circle at 1.5px 1.5px, rgba(255, 255, 255, 0.05) 1px, transparent 0);
+      background-size: 24px 24px;
+      pointer-events: none;
+    }
+
+    .tgt {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 0;
+      /* Hide label, use dot */
+      color: #fff;
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.2s, opacity 0.2s, background 0.2s;
+      z-index: 2;
+    }
+
+    .tgt::after {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+    }
+
+    .tgt.active-t {
+      opacity: 1;
+      pointer-events: auto;
+      background: rgba(252, 76, 2, 0.15);
+      border: 3px solid var(--acc);
+      box-shadow: 0 0 20px rgba(252, 76, 2, 0.4);
+      transform: scale(1.1);
+    }
+
+    .tgt.active-t::after {
+      background: #fff;
+      width: 8px;
+      height: 8px;
+      box-shadow: 0 0 10px #fff;
+    }
+
+    #live-pace-box {
+      border-left: 1px solid var(--border);
+      padding-left: 20px;
+    }
+
+    .gps-lock-overlay {
+      position: absolute;
+      inset: 0;
+      background: #000;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      opacity: 0;
       pointer-events: none;
       transition: opacity 0.3s;
     }
 
-    .toast::after {
-      content: '';
-      position: absolute;
-      bottom: -5px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 10px;
-      height: 5px;
-      background: rgba(15, 15, 30, 0.96);
-      clip-path: polygon(0 0, 100% 0, 50% 100%);
-    }
-
-    /* Experiment buttons — HIDDEN BY DEFAULT */
-    .exp-btn {
-      position: absolute;
-      border: none;
-      border-radius: 50%;
-      cursor: pointer;
-      font-family: var(--fmono);
-      font-size: 8px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      line-height: 1.2;
-      letter-spacing: 0.03em;
-
-      /* Hidden state */
-      opacity: 0;
-      pointer-events: none;
-      transform: scale(0.3);
-      transition: opacity 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
-        transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
-        box-shadow 0.2s;
-    }
-
-    /* REVEAL — only shown when .active */
-    .exp-btn.active {
+    .gps-lock-overlay.active {
       opacity: 1;
-      pointer-events: all;
-      transform: scale(1);
+      pointer-events: auto;
     }
 
-    .exp-btn:active {
-      transform: scale(0.85) !important;
-    }
-
-    .exp-btn.hit {
-      animation: btn-pop-out 0.3s ease forwards;
-    }
-
-    @keyframes btn-pop-out {
-      0% {
-        transform: scale(1);
-        opacity: 1;
-      }
-
-      40% {
-        transform: scale(1.5);
-        opacity: 0.5;
-      }
-
-      100% {
-        transform: scale(0);
-        opacity: 0;
-      }
-    }
-
-    /* Button size/color variants */
-    .btn-large {
-      width: 90px;
-      height: 90px;
-      font-size: 9px;
-      background: rgba(232, 255, 71, 0.12);
-      color: var(--acc);
-      border: 2px solid rgba(232, 255, 71, 0.4);
-    }
-
-    .btn-medium {
-      width: 60px;
-      height: 60px;
-      font-size: 8px;
-      background: rgba(0, 212, 255, 0.12);
-      color: var(--blue);
-      border: 2px solid rgba(0, 212, 255, 0.4);
-    }
-
-    .btn-small {
-      width: 38px;
-      height: 38px;
-      font-size: 7px;
-      background: rgba(255, 107, 157, 0.12);
-      color: var(--pink);
-      border: 2px solid rgba(255, 107, 157, 0.4);
-    }
-
-    /* Pulse rings for active target */
-    .btn-large.active {
-      box-shadow: 0 0 0 0 rgba(232, 255, 71, 0);
-      animation: pulse-y 0.9s ease-in-out infinite, reveal-pop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-    }
-
-    .btn-medium.active {
-      box-shadow: 0 0 0 0 rgba(0, 212, 255, 0);
-      animation: pulse-b 0.9s ease-in-out infinite, reveal-pop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-    }
-
-    .btn-small.active {
-      box-shadow: 0 0 0 0 rgba(255, 107, 157, 0);
-      animation: pulse-p 0.9s ease-in-out infinite, reveal-pop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-    }
-
-    @keyframes reveal-pop {
-      from {
-        transform: scale(0.3);
-        opacity: 0;
-      }
-
-      to {
-        transform: scale(1);
-        opacity: 1;
-      }
-    }
-
-    @keyframes pulse-y {
-
-      0%,
-      100% {
-        box-shadow: 0 0 0 0 rgba(232, 255, 71, 0.45), 0 0 20px rgba(232, 255, 71, 0.18);
-      }
-
-      50% {
-        box-shadow: 0 0 0 10px rgba(232, 255, 71, 0), 0 0 20px rgba(232, 255, 71, 0.18);
-      }
-    }
-
-    @keyframes pulse-b {
-
-      0%,
-      100% {
-        box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.45), 0 0 18px rgba(0, 212, 255, 0.18);
-      }
-
-      50% {
-        box-shadow: 0 0 0 8px rgba(0, 212, 255, 0), 0 0 18px rgba(0, 212, 255, 0.18);
-      }
-    }
-
-    @keyframes pulse-p {
-
-      0%,
-      100% {
-        box-shadow: 0 0 0 0 rgba(255, 107, 157, 0.45), 0 0 14px rgba(255, 107, 157, 0.18);
-      }
-
-      50% {
-        box-shadow: 0 0 0 6px rgba(255, 107, 157, 0), 0 0 14px rgba(255, 107, 157, 0.18);
-      }
-    }
-
-    /* Anchor / START button */
-    .anchor-btn {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 70px;
-      height: 70px;
-      background: var(--acc);
-      color: #07070f;
-      border: none;
+    .gps-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(252, 76, 2, 0.2);
+      border-top-color: var(--acc);
       border-radius: 50%;
-      font-family: var(--fmono);
-      font-size: 8px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .res-val {
+      font-size: 42px;
+      font-weight: 900;
+      color: var(--acc);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .res-lbl {
+      font-size: 10px;
       font-weight: 700;
-      letter-spacing: 0.04em;
-      cursor: pointer;
-      z-index: 10;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      line-height: 1.3;
-      transition: transform 0.15s, box-shadow 0.2s;
+      color: var(--muted2);
+      text-transform: uppercase;
     }
 
-    .anchor-btn:hover {
-      transform: translateX(-50%) scale(1.06);
-      box-shadow: 0 0 28px rgba(232, 255, 71, 0.45);
+    .home-link {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      background: var(--acc);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-weight: 900;
+      text-decoration: none;
+      font-size: 12px;
+      text-transform: uppercase;
     }
 
-    .anchor-btn:active {
-      transform: translateX(-50%) scale(0.92);
-    }
-
-    .anchor-btn.waiting {
-      animation: anchor-pulse 1.5s ease-in-out infinite;
-    }
-
-    @keyframes anchor-pulse {
-
-      0%,
-      100% {
-        box-shadow: 0 0 0 0 rgba(232, 255, 71, 0.5);
-      }
-
-      50% {
-        box-shadow: 0 0 0 14px rgba(232, 255, 71, 0);
-      }
-    }
-
-    /* Hit ripple */
+    /* ═══════════════════════════ FEEDBACK ═══════════════════════════ */
     .ripple {
       position: absolute;
       border-radius: 50%;
       pointer-events: none;
-      z-index: 50;
-      transform: scale(1);
-      animation: ripple-go 0.55s ease-out forwards;
+      animation: ripple-expand 0.5s ease-out forwards;
+      background: rgba(255, 255, 255, 0.4);
     }
 
-    @keyframes ripple-go {
+    @keyframes ripple-expand {
       to {
         transform: scale(4);
         opacity: 0;
       }
     }
 
-    /* Time badge */
     .time-badge {
       position: absolute;
       background: var(--acc);
-      color: #07070f;
-      font-family: var(--fmono);
-      font-size: 9px;
-      font-weight: 700;
-      padding: 3px 8px;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 900;
+      padding: 4px 10px;
       border-radius: 20px;
       pointer-events: none;
-      z-index: 100;
-      white-space: nowrap;
-      animation: badge-float 0.9s ease forwards;
+      animation: badge-rise 0.8s ease-out forwards;
     }
 
-    @keyframes badge-float {
-      0% {
-        opacity: 1;
-        transform: translateY(0);
-      }
-
-      100% {
-        opacity: 0;
-        transform: translateY(-52px);
-      }
-    }
-
-    /* ═══════════════════════════ SCREEN 4 — RESULTS ═══════════════════════════ */
-    #s4 {
-      overflow-y: auto;
-    }
-
-    #s4::-webkit-scrollbar {
-      display: none;
-    }
-
-    .r-hero {
-      padding: 6px 26px 18px;
-      flex-shrink: 0;
-    }
-
-    .r-eyebrow {
-      font-family: var(--fmono);
-      font-size: 9px;
-      color: var(--muted);
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-    }
-
-    .r-title {
-      font-family: var(--fdisplay);
-      font-size: 60px;
-      line-height: 0.92;
-      color: var(--text);
-    }
-
-    .r-title em {
-      color: var(--acc);
-      font-style: normal;
-    }
-
-    .stat-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      padding: 0 26px;
-      margin-bottom: 10px;
-    }
-
-    .stat-card {
-      background: var(--surf);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 14px 12px;
-    }
-
-    .stat-card.wide {
-      grid-column: 1/-1;
-    }
-
-    .stat-val {
-      font-family: var(--fdisplay);
-      font-size: 34px;
-      line-height: 1;
-      display: block;
-      margin-bottom: 3px;
-    }
-
-    .stat-lbl {
-      font-family: var(--fmono);
-      font-size: 8px;
-      color: var(--muted2);
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-    }
-
-    .breakdown-head {
-      font-family: var(--fmono);
-      font-size: 8px;
-      color: var(--muted);
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .breakdown-head::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
-
-    .br-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-
-    .br-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
-    .br-lbl {
-      font-size: 10px;
-      color: var(--text);
-      width: 66px;
-      flex-shrink: 0;
-      font-weight: 500;
-    }
-
-    .br-track {
-      flex: 1;
-      height: 7px;
-      background: var(--surf2);
-      border-radius: 4px;
-      overflow: hidden;
-    }
-
-    .br-fill {
-      height: 100%;
-      border-radius: 4px;
-      width: 0%;
-      transition: width 1.3s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    .br-time {
-      font-family: var(--fmono);
-      font-size: 9px;
-      color: var(--muted2);
-      width: 46px;
-      text-align: right;
-      flex-shrink: 0;
-    }
-
-    .insight-card {
-      background: rgba(232, 255, 71, 0.04);
-      border: 1px solid rgba(232, 255, 71, 0.16);
-      border-radius: 14px;
-      padding: 16px;
-      margin: 0 26px 12px;
-      flex-shrink: 0;
-    }
-
-    .insight-ey {
-      font-family: var(--fmono);
-      font-size: 8px;
-      color: var(--acc);
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      margin-bottom: 7px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .insight-ey::before {
-      content: '✦';
-      font-size: 9px;
-    }
-
-    .insight-body {
-      font-size: 12px;
-      color: var(--text);
-      line-height: 1.6;
-      font-weight: 300;
-    }
-
-    .insight-body strong {
-      color: var(--acc);
-      font-weight: 600;
-    }
-
-    .retry-btn {
-      margin: 0 26px;
-      width: calc(100% - 52px);
-      height: 52px;
-      background: var(--acc);
-      color: #07070f;
-      border: none;
-      border-radius: 14px;
-      font-family: var(--fmono);
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.2s;
-      flex-shrink: 0;
-    }
-
-    .retry-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 28px rgba(232, 255, 71, 0.28);
-    }
-
-    .retry-btn:active {
-      transform: scale(0.97);
-    }
-
-    /* ═══════════════════════════ ENTRY ANIMATION ═══════════════════════════ */
-    @keyframes fade-up {
+    @keyframes badge-rise {
       from {
-        opacity: 0;
-        transform: translateY(16px);
+        transform: translateY(0);
+        opacity: 1;
       }
 
       to {
-        opacity: 1;
-        transform: translateY(0);
+        transform: translateY(-40px);
+        opacity: 0;
       }
-    }
-
-    .anim {
-      animation: fade-up 0.5s ease forwards;
-      opacity: 0;
-    }
-
-    .d1 {
-      animation-delay: 0.05s
-    }
-
-    .d2 {
-      animation-delay: 0.15s
-    }
-
-    .d3 {
-      animation-delay: 0.25s
-    }
-
-    .d4 {
-      animation-delay: 0.35s
-    }
-
-    .d5 {
-      animation-delay: 0.45s
-    }
-
-    /* Home button */
-    .home-link {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 9999;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 20px;
-      background: rgba(232, 255, 71, 0.06);
-      border: 1px solid rgba(232, 255, 71, 0.2);
-      border-radius: 50px;
-      color: var(--acc);
-      font-family: var(--fmono);
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      text-decoration: none;
-      transition: all 0.2s ease;
-      cursor: pointer;
-      backdrop-filter: blur(10px);
-    }
-
-    .home-link:hover {
-      background: rgba(232, 255, 71, 0.15);
-      border-color: rgba(232, 255, 71, 0.4);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(232, 255, 71, 0.15);
-    }
-
-    .home-link:active {
-      transform: scale(0.97);
     }
   </style>
 </head>
 
 <body>
 
-  <a href="index.html" class="home-link">← Home</a>
+  <a href="index.html" class="home-link">Home</a>
 
-  <!-- ════════════════ PHONE ════════════════ -->
   <div class="phone-wrap">
-
-    <!-- Hardware buttons -->
-    <div class="side-btn btn-silent"></div>
-    <div class="side-btn btn-vol-up"></div>
-    <div class="side-btn btn-vol-dn"></div>
-    <div class="side-btn btn-power"></div>
-
     <div class="phone-bezel">
       <div class="phone-screen">
 
-        <!-- Dynamic Island -->
-        <div class="dynamic-island">
-          <div class="di-camera"></div>
-          <div class="di-sensor"></div>
-        </div>
-
-        <!-- Status Bar -->
         <div class="status-bar">
           <div class="status-time">9:41</div>
-          <div class="status-icons">
-            <div class="signal">
-              <div class="signal-bar"></div>
-              <div class="signal-bar"></div>
-              <div class="signal-bar"></div>
-              <div class="signal-bar"></div>
-            </div>
-            <div class="wifi">
-              <div class="wifi-arc"></div>
-              <div class="wifi-arc"></div>
-              <div class="wifi-arc"></div>
-            </div>
-            <div class="battery">
-              <div class="battery-body">
-                <div class="battery-fill"></div>
-              </div>
-              <div class="battery-tip"></div>
-            </div>
+          <div class="bpm-box" id="bpm-display" style="display: none;">
+            <span class="bpm-icon">❤</span>
+            <span class="bpm-val" id="bpm-val">122</span>
           </div>
+          <div class="tag" style="padding: 2px 8px; font-size: 8px;">GPS ACTIVE</div>
         </div>
 
-        <!-- ══ SCREEN 1 — TITLE ══ -->
+        <!-- SCREEN 1 -->
         <div class="screen" id="s1">
-          <div class="s1-top">
-            <div class="tag anim d1"><span class="tag-dot"></span>UX RESEARCH · 2026</div>
-            <div class="s1-title anim d2">FITT'S<em>LAW</em></div>
-            <p class="s1-body anim d3">A hands-on experiment testing how button size & distance affect your tap speed.
+          <div class="s1-hero">
+            <div class="glass-badge"></div>
+            <div class="tag">PERFORMANCE LAB</div>
+            <h1 class="s1-title">FITT'S<br><em>TRIAL</em></h1>
+            <p style="font-size: 14px; color: var(--muted2); line-height: 1.5; font-weight: 500;">
+              Analyze your movement efficiency through high-intensity target acquisition.
             </p>
           </div>
-
-          <div class="s1-graphic anim d3">
-            <div class="ring ring-1"></div>
-            <div class="ring ring-2"></div>
-            <div class="ring ring-3"></div>
-            <div class="ring ring-4"></div>
-            <div class="formula-text">T = a + b · log₂(2D/W)</div>
-          </div>
-
-          <div class="s1-bottom anim d4">
-            <div class="chips-row">
-              <div class="chip">
-                <div class="chip-val" style="color:var(--acc)">8</div>
-                <span class="chip-lbl">BUTTONS</span>
-              </div>
-              <div class="chip">
-                <div class="chip-val" style="color:var(--blue)">3</div>
-                <span class="chip-lbl">SIZES</span>
-              </div>
-              <div class="chip">
-                <div class="chip-val" style="color:var(--pink)">∞</div>
-                <span class="chip-lbl">TRIES</span>
-              </div>
-            </div>
-            <button class="cta-btn anim d5" onclick="nav(1)">BEGIN EXPERIMENT <span>→</span></button>
-          </div>
+          <button class="cta-btn" onclick="goTo('s2')">View Instructions</button>
         </div>
 
-        <!-- ══ SCREEN 2 — INSTRUCTIONS ══ -->
+        <!-- SCREEN 2 -->
         <div class="screen hidden" id="s2">
-          <div class="s2-head">
-            <div class="tag"><span class="tag-dot"></span>INSTRUCTIONS</div>
-            <div class="s2-title">HOW IT<em>WORKS</em></div>
-            <p class="s2-sub">Understand the experiment before you begin.</p>
+          <h2 class="s2-title">Training<br>Setup</h2>
+          <div class="card-list">
+            <div class="glass-card">
+              <div class="card-icon">🎯</div>
+              <div class="card-info">
+                <h3>Objective</h3>
+                <p>Tap the orange target, then quickly return to START.</p>
+              </div>
+            </div>
+            <div class="glass-card">
+              <div class="card-icon">📏</div>
+              <div class="card-info">
+                <h3>Variable Size</h3>
+                <p>Targets scale from 22px to 50px to test precision limits.</p>
+              </div>
+            </div>
+            <div class="glass-card">
+              <div class="card-icon">⚡</div>
+              <div class="card-info">
+                <h3>Fast Effort</h3>
+                <p>Speed matters. Every millisecond counts toward your performance score.</p>
+              </div>
+            </div>
           </div>
-
-          <div class="divider"></div>
-
-          <div class="s2-scroll">
-            <div style="height:14px"></div>
-
-            <div class="section">
-              <div class="section-label">Objective</div>
-              <div
-                style="background:var(--surf);border-radius:14px;padding:13px 15px;display:flex;gap:12px;align-items:center;">
-                <span style="font-size:22px;">🎯</span>
-                <p style="font-size:11px;color:var(--muted2);line-height:1.5;font-weight:300;">Tap the <b
-                    style="color:var(--text);font-weight:600;">highlighted button</b> that appears, then return to <b
-                    style="color:var(--acc);font-weight:600;">START</b>. Each button pops up one at a time as a
-                  surprise!</p>
-              </div>
-            </div>
-
-            <div class="section">
-              <div class="section-label">Button Sizes</div>
-              <div class="showcase">
-                <div class="sc-row">
-                  <div class="sc-circle sc-L">L</div>
-                  <div class="sc-info">
-                    <div class="sc-name" style="color:var(--acc)">Large Buttons</div>
-                    <div class="sc-desc">90px — Easy to hit, fast response</div>
-                  </div>
-                  <div class="sc-badge">×3</div>
-                </div>
-                <div class="sc-row">
-                  <div class="sc-circle sc-M">M</div>
-                  <div class="sc-info">
-                    <div class="sc-name" style="color:var(--blue)">Medium Buttons</div>
-                    <div class="sc-desc">60px — Moderate effort & speed</div>
-                  </div>
-                  <div class="sc-badge">×3</div>
-                </div>
-                <div class="sc-row">
-                  <div class="sc-circle sc-S">S</div>
-                  <div class="sc-info">
-                    <div class="sc-name" style="color:var(--pink)">Small Buttons</div>
-                    <div class="sc-desc">38px — Harder to hit, slower</div>
-                  </div>
-                  <div class="sc-badge">×2</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="section">
-              <div class="section-label">Fitt's Law Principles</div>
-              <div class="principles">
-                <div class="p-card p1">
-                  <div class="p-icon">📏</div>
-                  <div>
-                    <div class="p-title">Size matters</div>
-                    <div class="p-desc">Larger buttons are faster and easier to tap. Doubling target size noticeably
-                      cuts movement time.</div>
-                  </div>
-                </div>
-                <div class="p-card p2">
-                  <div class="p-icon">↔️</div>
-                  <div>
-                    <div class="p-title">Distance costs time</div>
-                    <div class="p-desc">Buttons farther from START take longer to reach. Each extra distance adds
-                      measurable delay.</div>
-                  </div>
-                </div>
-                <div class="p-card p3">
-                  <div class="p-icon">⚖️</div>
-                  <div>
-                    <div class="p-title">Index of Difficulty</div>
-                    <div class="p-desc">T = a + b·log₂(2D/W) — time scales logarithmically with the distance-to-size
-                      ratio.</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="section">
-              <div class="section-label">Tips</div>
-              <div class="tips-box">
-                <div class="tip-row">
-                  <div class="tip-num">1</div>
-                  <div class="tip-text">Tap <b>START</b> first, then immediately hit the button that appears.</div>
-                </div>
-                <div class="tip-row">
-                  <div class="tip-num">2</div>
-                  <div class="tip-text">Always return to <b>START</b> between each tap — this resets the distance.</div>
-                </div>
-                <div class="tip-row">
-                  <div class="tip-num">3</div>
-                  <div class="tip-text">Buttons appear <b>one at a time</b> as a surprise — stay focused!</div>
-                </div>
-                <div class="tip-row">
-                  <div class="tip-num">4</div>
-                  <div class="tip-text">Notice how <b style="color:var(--acc)">large yellow</b> buttons feel faster than
-                    <b style="color:var(--pink)">small pink</b> ones.
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div style="height:6px"></div>
-          </div>
-
-          <div class="divider"></div>
-          <div class="s2-foot" style="padding-top:12px;">
-            <button class="cta-btn" onclick="startExperiment()">START EXPERIMENT <span>→</span></button>
-          </div>
+          <button class="cta-btn" onclick="startExperiment()" style="margin-top: 24px;">Start Workout</button>
         </div>
 
-        <!-- ══ SCREEN 3 — EXPERIMENT ══ -->
+        <!-- SCREEN 3 -->
         <div class="screen hidden" id="s3">
-          <div class="exp-header">
-            <div class="exp-label">FITTS LAW / TRIAL</div>
-            <div class="scoreboard">
-              <div class="score-pill">
-                <span class="score-val" id="hit-count">0</span>
-                <span class="score-lbl">HITS</span>
+          <div class="progress-wrap">
+            <div class="progress-bar" id="p-bar"></div>
+          </div>
+          <div class="arena-header">
+            <div class="arena-label">Active Session</div>
+            <div class="stats-row">
+              <div class="stat-pill" id="live-pace-box">
+                <span class="stat-val" id="live-pace">—</span>
+                <span class="stat-lbl">Pace</span>
               </div>
-              <div class="score-pill">
-                <span class="score-val" id="avg-time">—</span>
-                <span class="score-lbl">AVG MS</span>
+              <div class="stat-pill">
+                <span class="stat-val" id="hit-count">0</span>
+                <span class="stat-lbl">Hits</span>
               </div>
             </div>
           </div>
 
-          <div class="progress-track">
-            <div class="progress-fill" id="progress-fill"></div>
-          </div>
-
-          <div class="exp-legend">
-            <div class="leg-item">
-              <div class="leg-dot" style="background:var(--acc)"></div>LARGE
-            </div>
-            <div class="leg-item">
-              <div class="leg-dot" style="background:var(--blue)"></div>MEDIUM
-            </div>
-            <div class="leg-item">
-              <div class="leg-dot" style="background:var(--pink)"></div>SMALL
+          <div class="arena" id="arena" onclick="onArenaMiss(event)">
+            <div class="arena-grid"></div>
+            <svg class="arena-bg-map" viewBox="0 0 400 600" preserveAspectRatio="none">
+              <path fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="2"
+                d="M0,100 Q100,50 200,100 T400,100 M0,300 Q100,250 200,300 T400,300 M0,500 Q100,450 200,500 T400,500 M100,0 Q50,150 100,300 T100,600 M300,0 Q250,150 300,300 T300,600" />
+            </svg>
+            <div class="toast" id="toast">Ready?</div>
+            <div id="gps-lock" class="gps-lock-overlay">
+              <div class="gps-spinner"></div>
+              <div class="tag">Searching for GPS...</div>
             </div>
           </div>
 
-          <div class="arena" id="arena">
-            <div class="toast" id="toast">TAP ↓ START ↓ TO BEGIN</div>
+          <div class="anchor-zone">
+            <button class="anchor-btn" id="anchor-btn" onclick="onAnchorClick()">START</button>
           </div>
-
-          <button class="anchor-btn waiting" id="anchor-btn" onclick="onAnchorClick()">
-            START<br>HERE
-          </button>
         </div>
 
-        <!-- ══ SCREEN 4 — RESULTS ══ -->
+        <!-- SCREEN 4 -->
         <div class="screen hidden" id="s4">
-          <div class="r-hero">
-            <div class="r-eyebrow">EXPERIMENT COMPLETE</div>
-            <div class="r-title">YOUR<em>DATA</em></div>
+          <div class="results-head" style="padding-bottom: 12px;">
+            <div class="res-eyebrow">Session Complete</div>
+            <h2 class="res-title">Summary</h2>
           </div>
 
-          <div class="stat-grid">
-            <div class="stat-card">
-              <span class="stat-val" style="color:var(--acc)" id="r-total">0</span>
-              <span class="stat-lbl">Total Hits</span>
+          <div id="pb-celebration" class="pb-badge">Personal Record</div>
+
+          <div class="map-placeholder">
+            <svg class="gps-path" viewBox="0 0 400 200" preserveAspectRatio="none">
+              <path class="gps-line" d="M 50,150 C 100,140 80,100 150,80 S 200,120 280,60 C 330,20 380,40 380,40" />
+              <circle class="gps-marker" cx="50" cy="150" r="4" />
+              <circle class="gps-marker end" cx="380" cy="40" r="4" />
+            </svg>
+          </div>
+
+          <div class="results-stats" style="padding-bottom: 20px;">
+            <div class="res-card wide">
+              <div class="res-val" id="r-avg">--</div>
+              <div class="res-lbl">Average Movement Time</div>
             </div>
-            <div class="stat-card">
-              <span class="stat-val" style="color:var(--blue)" id="r-avg">—</span>
-              <span class="stat-lbl">Avg Time</span>
+            <div class="res-card">
+              <div class="res-val" id="r-total">--</div>
+              <div class="res-lbl">Total Hits</div>
             </div>
-            <div class="stat-card">
-              <span class="stat-val" style="color:var(--acc)" id="r-best">—</span>
-              <span class="stat-lbl">Best Hit</span>
-            </div>
-            <div class="stat-card">
-              <span class="stat-val" style="color:var(--orange)" id="r-worst">—</span>
-              <span class="stat-lbl">Slowest Hit</span>
-            </div>
-            <div class="stat-card wide">
-              <div class="breakdown-head">By Button Type</div>
-              <div class="br-row">
-                <div class="br-dot" style="background:var(--acc)"></div>
-                <div class="br-lbl">Large ×3</div>
-                <div class="br-track">
-                  <div class="br-fill" style="background:var(--acc)" id="bar-L"></div>
-                </div>
-                <div class="br-time" id="t-L">—</div>
-              </div>
-              <div class="br-row">
-                <div class="br-dot" style="background:var(--blue)"></div>
-                <div class="br-lbl">Medium ×3</div>
-                <div class="br-track">
-                  <div class="br-fill" style="background:var(--blue)" id="bar-M"></div>
-                </div>
-                <div class="br-time" id="t-M">—</div>
-              </div>
-              <div class="br-row" style="margin-bottom:0">
-                <div class="br-dot" style="background:var(--pink)"></div>
-                <div class="br-lbl">Small ×2</div>
-                <div class="br-track">
-                  <div class="br-fill" style="background:var(--pink)" id="bar-S"></div>
-                </div>
-                <div class="br-time" id="t-S">—</div>
-              </div>
+            <div class="res-card">
+              <div class="res-val" id="r-acc">100%</div>
+              <div class="res-lbl">Accuracy</div>
             </div>
           </div>
 
-          <div class="insight-card">
-            <div class="insight-ey">Key Insight</div>
-            <div class="insight-body" id="insight-text">Analyzing your results…</div>
+          <div class="section-label" style="padding: 0 26px; margin-top: 10px;">Trial Splits</div>
+          <div class="splits-grid">
+            <div class="split-row">
+              <span class="split-name">Large (50px)</span>
+              <span class="split-val" id="s-large">--</span>
+            </div>
+            <div class="split-row">
+              <span class="split-name">Medium (34px)</span>
+              <span class="split-val" id="s-medium">--</span>
+            </div>
+            <div class="split-row">
+              <span class="split-name">Small (22px)</span>
+              <span class="split-val" id="s-small">--</span>
+            </div>
           </div>
 
-          <button class="retry-btn" onclick="nav(0)">↺ TRY AGAIN</button>
+          <div style="padding: 0 26px 40px;">
+            <button class="cta-btn" onclick="initArena(); goTo('s3');">Retry Trial</button>
+          </div>
         </div>
 
-        <!-- Home indicator -->
-        <div class="home-indicator"></div>
-
-      </div><!-- /phone-screen -->
-    </div><!-- /phone-bezel -->
-  </div><!-- /phone-wrap -->
-
-  <!-- ════════════════ NAV DOTS ════════════════ -->
-  <div class="nav-wrap">
-    <div class="nav-dots">
-      <div class="nav-dot active" id="dot-0" onclick="nav(0)" title="Title"></div>
-      <div class="nav-dot" id="dot-1" onclick="nav(1)" title="Instructions"></div>
-      <div class="nav-dot" id="dot-2" onclick="nav(2)" title="Experiment"></div>
-      <div class="nav-dot" id="dot-3" onclick="nav(3)" title="Results"></div>
+      </div>
     </div>
-    <div class="nav-dot-label" id="dot-label">TITLE</div>
   </div>
 
   <script>
-    /* ════════ NAVIGATION ════════ */
-    const SCREENS = ['s1', 's2', 's3', 's4'];
-    const DOT_LABELS = ['TITLE', 'INSTRUCTIONS', 'EXPERIMENT', 'RESULTS'];
-    let currentScreen = 0;
-
-    function nav(idx) {
-      // Don't allow jumping to results via dot without data
-      if (idx === 3 && timings.large.length + timings.medium.length + timings.small.length === 0) return;
-      SCREENS.forEach((id, i) => {
-        document.getElementById(id).classList.toggle('hidden', i !== idx);
-      });
-      document.querySelectorAll('.nav-dot').forEach((d, i) => {
-        d.classList.toggle('active', i === idx);
-      });
-      document.getElementById('dot-label').textContent = DOT_LABELS[idx];
-      currentScreen = idx;
-    }
-
-    /* ════════ BUTTON LAYOUT ════════
-       Arena: ~385 × ~490px
-       Anchor center: (192, 480)
-       All positions in % of arena W/H
-    ════════════════════════════════ */
-    const BTN_CFG = [
-      // LARGE (90px)
-      { id: 'L1', type: 'large', xP: 0.50, yP: 0.07, label: 'L1' }, // top-center / near
-      { id: 'L2', type: 'large', xP: 0.12, yP: 0.33, label: 'L2' }, // left-mid
-      { id: 'L3', type: 'large', xP: 0.82, yP: 0.20, label: 'L3' }, // upper-right
-      // MEDIUM (60px)
-      { id: 'M1', type: 'medium', xP: 0.80, yP: 0.60, label: 'M1' }, // lower-right
-      { id: 'M2', type: 'medium', xP: 0.18, yP: 0.65, label: 'M2' }, // lower-left
-      { id: 'M3', type: 'medium', xP: 0.54, yP: 0.40, label: 'M3' }, // center-mid
-      // SMALL (38px)
-      { id: 'S1', type: 'small', xP: 0.07, yP: 0.08, label: 'S1' }, // far top-left
-      { id: 'S2', type: 'small', xP: 0.91, yP: 0.78, label: 'S2' }, // far bottom-right
+    /* ═══════════════════════════ LOGIC ═══════════════════════════ */
+    const BTN_CONFIG = [
+      { id: 1, label: 'L1', type: 'large', xPct: 0.2, yPct: 0.2 },
+      { id: 2, label: 'L2', type: 'large', xPct: 0.8, yPct: 0.3 },
+      { id: 3, label: 'L3', type: 'large', xPct: 0.5, yPct: 0.7 },
+      { id: 4, label: 'M1', type: 'medium', xPct: 0.15, yPct: 0.5 },
+      { id: 5, label: 'M2', type: 'medium', xPct: 0.85, yPct: 0.6 },
+      { id: 6, label: 'M3', type: 'medium', xPct: 0.3, yPct: 0.85 },
+      { id: 7, label: 'S1', type: 'small', xPct: 0.7, yPct: 0.15 },
+      { id: 8, label: 'S2', type: 'small', xPct: 0.5, yPct: 0.4 }
     ];
 
-    const SZ = { large: 90, medium: 60, small: 38 };
+    const SZ = { large: 50, medium: 34, small: 22 };
 
     let sequence = [];
     let currentIdx = 0;
-    let startTime = 0;
     let timings = { large: [], medium: [], small: [] };
-    let expState = 'idle'; // idle | wait-anchor | run
+    let misses = 0;
+    let startTime = 0;
+    let expState = 'idle';
+    let bpm = 120;
+    let bpmInterval = null;
 
     function shuffle(arr) {
-      const a = [...arr];
-      for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]]; }
-      return a;
+      return [...arr].sort(() => Math.random() - 0.5);
     }
 
-    function avg(arr) {
-      return arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : null;
+    function goTo(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+      const active = document.getElementById(id);
+      active.classList.remove('hidden');
+
+      // Heart rate display logic
+      document.getElementById('bpm-display').style.display = (id === 's3') ? 'flex' : 'none';
+      if (id !== 's3') stopBpm();
     }
 
-    /* ════════ START EXPERIMENT ════════ */
     function startExperiment() {
-      nav(2);
-      initExp();
+      initArena();
+      goTo('s3');
+
+      // GPS Lock simulation
+      const lock = document.getElementById('gps-lock');
+      lock.classList.add('active');
+      setTimeout(() => {
+        lock.classList.remove('active');
+        startBpm();
+      }, 1200);
     }
 
-    function initExp() {
-      sequence = shuffle(BTN_CFG);
+    function initArena() {
+      sequence = shuffle(BTN_CONFIG);
       currentIdx = 0;
+      misses = 0;
       timings = { large: [], medium: [], small: [] };
       expState = 'wait-anchor';
 
       document.getElementById('hit-count').textContent = '0';
-      document.getElementById('avg-time').textContent = '—';
-      document.getElementById('progress-fill').style.width = '0%';
-      setToast('TAP ↓ START ↓ TO BEGIN');
+      document.getElementById('live-pace').textContent = '—';
+      document.getElementById('p-bar').style.width = '0%';
+      setToast('GO TO START');
 
-      const anchor = document.getElementById('anchor-btn');
-      anchor.classList.add('waiting');
-
+      document.getElementById('anchor-btn').classList.add('waiting');
       buildButtons();
     }
 
     function buildButtons() {
       const arena = document.getElementById('arena');
-      arena.querySelectorAll('.exp-btn').forEach(b => b.remove());
+      arena.querySelectorAll('.tgt').forEach(b => b.remove());
 
-      const W = arena.offsetWidth || 345;
-      const H = arena.offsetHeight || 490;
+      const W = arena.offsetWidth || 342;
+      const H = arena.offsetHeight || 500;
 
-      BTN_CFG.forEach(cfg => {
-        const btn = document.createElement('button');
-        btn.className = `exp-btn btn-${cfg.type}`;
+      sequence.forEach(cfg => {
+        const btn = document.createElement('div');
+        btn.className = 'tgt';
         btn.id = `eb-${cfg.id}`;
-        btn.dataset.id = cfg.id;
-        btn.dataset.type = cfg.type;
         btn.textContent = cfg.label;
 
         const s = SZ[cfg.type];
-        btn.style.left = (cfg.xP * W - s / 2) + 'px';
-        btn.style.top = (cfg.yP * H - s / 2) + 'px';
+        btn.style.width = s + 'px';
+        btn.style.height = s + 'px';
+        btn.style.left = (cfg.xPct * W - s / 2) + 'px';
+        btn.style.top = (cfg.yPct * H - s / 2) + 'px';
 
-        btn.addEventListener('click', (e) => onExpClick(e, cfg.id, cfg.type, btn));
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          onExpClick(e, cfg.id, cfg.type, btn);
+        };
         arena.appendChild(btn);
       });
     }
 
-    /* ════════ ANCHOR CLICK ════════ */
+    function onArenaMiss(e) {
+      if (expState === 'wait-target') {
+        misses++;
+        // Visual feedback for miss
+        const arena = document.getElementById('arena');
+        arena.style.background = 'rgba(255, 0, 0, 0.05)';
+        setTimeout(() => arena.style.background = '#000', 100);
+      }
+    }
+
     function onAnchorClick() {
       if (expState !== 'wait-anchor') return;
-      expState = 'run';
       document.getElementById('anchor-btn').classList.remove('waiting');
-      revealTarget();
-    }
-
-    /* ════════ REVEAL SINGLE TARGET (SURPRISE) ════════ */
-    function revealTarget() {
-      if (currentIdx >= sequence.length) {
-        endExp();
-        return;
-      }
 
       const target = sequence[currentIdx];
-
-      // Hide ALL buttons first
-      BTN_CFG.forEach(cfg => {
-        const b = document.getElementById(`eb-${cfg.id}`);
-        if (b) {
-          b.classList.remove('active', 'hit');
-        }
-      });
-
-      // Show ONLY the target — surprise!
-      const targetBtn = document.getElementById(`eb-${target.id}`);
-      // Small delay for pop-in effect
-      setTimeout(() => {
-        targetBtn.classList.add('active');
-      }, 80);
-
-      setToast(`→ HIT IT! ${target.label} (${target.type.toUpperCase()})`);
-
-      document.getElementById('progress-fill').style.width =
-        (currentIdx / sequence.length * 100) + '%';
+      const btn = document.getElementById(`eb-${target.id}`);
+      btn.classList.add('active-t');
 
       startTime = performance.now();
+      expState = 'wait-target';
+      setToast('');
     }
 
-    /* ════════ HIT EXPERIMENT BUTTON ════════ */
     function onExpClick(e, id, type, btn) {
-      if (expState !== 'run') return;
-      if (id !== sequence[currentIdx].id) return;
+      if (expState !== 'wait-target') return;
 
-      const ms = Math.round(performance.now() - startTime);
-      timings[type].push(ms);
+      const elapsed = Math.round(performance.now() - startTime);
+      timings[type].push(elapsed);
 
-      // Ripple effect
-      const arena = document.getElementById('arena');
-      const ar = arena.getBoundingClientRect();
-      const br = btn.getBoundingClientRect();
-      const s = SZ[type];
-      const col = type === 'large' ? 'rgba(232,255,71,0.3)' : type === 'medium' ? 'rgba(0,212,255,0.3)' : 'rgba(255,107,157,0.3)';
+      // Visual feedback
+      createRipple(e, btn);
+      createBadge(btn, elapsed + 'ms');
 
-      const rip = document.createElement('div');
-      rip.className = 'ripple';
-      rip.style.cssText = `width:${s}px;height:${s}px;left:${br.left - ar.left}px;top:${br.top - ar.top}px;background:${col};`;
-      arena.appendChild(rip);
-      setTimeout(() => rip.remove(), 600);
-
-      // Time badge
-      const badge = document.createElement('div');
-      badge.className = 'time-badge';
-      badge.textContent = ms + 'ms';
-      badge.style.cssText = `left:${br.left - ar.left + s / 2 - 20}px;top:${br.top - ar.top - 8}px;`;
-      arena.appendChild(badge);
-      setTimeout(() => badge.remove(), 950);
-
-      // Hit animation
-      btn.classList.add('hit');
-      btn.classList.remove('active');
-
-      // Update scoreboard
+      btn.classList.remove('active-t');
       currentIdx++;
-      const all = [...timings.large, ...timings.medium, ...timings.small];
-      document.getElementById('hit-count').textContent = all.length;
-      if (all.length) document.getElementById('avg-time').textContent = avg(all);
 
-      // Back to anchor
-      expState = 'wait-anchor';
-      setToast('↓ RETURN TO START ↓');
-      document.getElementById('anchor-btn').classList.add('waiting');
+      // Stats & Progress
+      const allTimes = Object.values(timings).flat();
+      const avg = Math.round(allTimes.reduce((a, b) => a + b, 0) / allTimes.length);
+      document.getElementById('hit-count').textContent = currentIdx;
+      document.getElementById('live-pace').textContent = elapsed + 'ms';
+      document.getElementById('p-bar').style.width = (currentIdx / sequence.length * 100) + '%';
 
-      setTimeout(() => {
-        btn.classList.remove('hit');
-      }, 350);
-    }
-
-    function setToast(text) {
-      document.getElementById('toast').textContent = text;
-    }
-
-    /* ════════ END → RESULTS ════════ */
-    function endExp() {
-      const all = [...timings.large, ...timings.medium, ...timings.small];
-      const aL = avg(timings.large);
-      const aM = avg(timings.medium);
-      const aS = avg(timings.small);
-      const aAll = avg(all);
-      const best = Math.min(...all);
-      const worst = Math.max(...all);
-      const maxT = Math.max(aL || 0, aM || 0, aS || 0) || 1;
-
-      document.getElementById('r-total').textContent = all.length;
-      document.getElementById('r-avg').textContent = aAll ? aAll + 'ms' : '—';
-      document.getElementById('r-best').textContent = best + 'ms';
-      document.getElementById('r-worst').textContent = worst + 'ms';
-
-      document.getElementById('t-L').textContent = aL ? aL + 'ms' : '—';
-      document.getElementById('t-M').textContent = aM ? aM + 'ms' : '—';
-      document.getElementById('t-S').textContent = aS ? aS + 'ms' : '—';
-
-      setTimeout(() => {
-        document.getElementById('bar-L').style.width = ((aL || 0) / maxT * 100) + '%';
-        document.getElementById('bar-M').style.width = ((aM || 0) / maxT * 100) + '%';
-        document.getElementById('bar-S').style.width = ((aS || 0) / maxT * 100) + '%';
-      }, 400);
-
-      // Generate insight
-      let txt = '';
-      if (aL && aS) {
-        const diff = Math.abs(aS - aL);
-        if (aS > aL) {
-          txt = `Large buttons were <strong>${diff}ms faster</strong> to tap than small ones — exactly what Fitt's Law predicts. Bigger targets reduce movement time and cognitive load.`;
-        } else {
-          txt = `Great precision! Your times were surprisingly consistent across sizes. Try again after a break — fatigue gradually reveals the size-speed relationship Fitt's Law describes.`;
-        }
+      if (currentIdx < sequence.length) {
+        expState = 'wait-anchor';
+        document.getElementById('anchor-btn').classList.add('waiting');
+        setToast('RETURN');
+        bpm += 2; // Increase heart rate
       } else {
-        txt = `Your data demonstrates Fitt's Law in action — <strong>target size and distance</strong> directly shape how long it takes to complete a pointing movement. Larger, closer buttons win every time.`;
+        showResults();
       }
-      document.getElementById('insight-text').innerHTML = txt;
+    }
 
-      nav(3);
+    function showResults() {
+      expState = 'done';
+      stopBpm();
+
+      const allTimes = Object.values(timings).flat();
+      const avg = Math.round(allTimes.reduce((a, b) => a + b, 0) / allTimes.length);
+      const acc = Math.round((allTimes.length / (allTimes.length + misses)) * 100);
+
+      // Update Summaries
+      document.getElementById('r-avg').textContent = avg + 'ms';
+      document.getElementById('r-total').textContent = allTimes.length;
+      document.getElementById('r-acc').textContent = acc + '%';
+
+      // Update Splits
+      ['large', 'medium', 'small'].forEach(key => {
+        const arr = timings[key];
+        const val = arr.length > 0 ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) + 'ms' : '--';
+        document.getElementById(`s-${key}`).textContent = val;
+      });
+
+      // Personal Best check
+      const prevBest = localStorage.getItem('fitts_pb_strava');
+      const pbBadge = document.getElementById('pb-celebration');
+      if (!prevBest || avg < parseInt(prevBest)) {
+        localStorage.setItem('fitts_pb_strava', avg);
+        pbBadge.classList.add('active');
+      } else {
+        pbBadge.classList.remove('active');
+      }
+
+      goTo('s4');
+    }
+
+    function startBpm() {
+      bpm = 110;
+      bpmInterval = setInterval(() => {
+        bpm += (Math.random() > 0.5 ? 1 : -1);
+        document.getElementById('bpm-val').textContent = bpm;
+      }, 800);
+    }
+
+    function stopBpm() {
+      if (bpmInterval) clearInterval(bpmInterval);
+    }
+
+    function setToast(txt) {
+      document.getElementById('toast').textContent = txt;
+    }
+
+    function createRipple(e, parent) {
+      const r = document.createElement('div');
+      r.className = 'ripple';
+      const rect = parent.getBoundingClientRect();
+      r.style.width = r.style.height = Math.max(rect.width, rect.height) + 'px';
+      r.style.left = '0'; r.style.top = '0';
+      parent.appendChild(r);
+      setTimeout(() => r.remove(), 600);
+    }
+
+    function createBadge(parent, txt) {
+      const b = document.createElement('div');
+      b.className = 'time-badge';
+      b.textContent = txt;
+      b.style.left = '50%'; b.style.top = '-20px';
+      b.style.transform = 'translateX(-50%)';
+      parent.appendChild(b);
+      setTimeout(() => b.remove(), 800);
     }
   </script>
 </body>
