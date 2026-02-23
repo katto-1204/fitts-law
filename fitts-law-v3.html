@@ -1102,6 +1102,60 @@
         pbBadge.classList.remove('active');
       }
 
+      // LEADERBOARD LOGGING (v4.2)
+      const userName = localStorage.getItem('fitts_user_name') || 'Anonymous';
+      const leaderboard = JSON.parse(localStorage.getItem('fitts_leaderboard') || '[]');
+
+      const entryBadges = [];
+      let beatMessage = "";
+
+      // 🏆 First Blood
+      if (leaderboard.length === 0) {
+        entryBadges.push("First Blood");
+      }
+
+      // 🎯 Sniper
+      if (acc === 100) {
+        entryBadges.push("Sniper");
+      }
+
+      // Sort existing to find rank
+      const sortedPrev = [...leaderboard].sort((a, b) => a.avg - b.avg);
+
+      // 👑 Segment Leader / Beat logic
+      if (sortedPrev.length > 0) {
+        if (avg < sortedPrev[0].avg) {
+          entryBadges.push("Leader");
+          if (sortedPrev[0].name !== userName) {
+            beatMessage = `You beat ${sortedPrev[0].name}!`;
+          }
+        } else {
+          // Find the person just above you
+          const beaten = sortedPrev.find(e => avg < e.avg && e.name !== userName);
+          if (beaten) {
+            beatMessage = `You beat ${beaten.name}!`;
+          }
+        }
+      }
+
+      const newEntry = {
+        name: userName,
+        avg: avg,
+        acc: acc,
+        date: new Date().toISOString(),
+        badges: entryBadges,
+        beat: beatMessage
+      };
+
+      leaderboard.push(newEntry);
+      localStorage.setItem('fitts_leaderboard', JSON.stringify(leaderboard));
+
+      // Visual feedback for beat message
+      if (beatMessage) {
+        setToast(beatMessage.toUpperCase());
+        setTimeout(() => setToast(""), 3000);
+      }
+
       goTo('s4');
     }
 

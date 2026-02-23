@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard — Fitts' Trial</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #121212;
+            --surf: #1a1a1a;
+            --acc: #FC4C02;
+            --text: #ffffff;
+            --muted: #888888;
+            --border: rgba(255, 255, 255, 0.1);
+            --fdisplay: 'Outfit', sans-serif;
+            --gold: #FFD700;
+            --silver: #C0C0C0;
+            --bronze: #CD7F32;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--fdisplay);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            overflow-x: hidden;
+        }
+
+        .header {
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .back-link {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--text);
+        }
+
+        /* Podium UI */
+        .podium-sec {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 60px;
+            height: 280px;
+        }
+
+        .podium-spot {
+            background: var(--surf);
+            border: 1px solid var(--border);
+            border-radius: 20px 20px 12px 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 16px;
+            position: relative;
+            flex: 1;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .podium-spot:hover {
+            transform: translateY(-10px);
+        }
+
+        .podium-spot.is-empty {
+            opacity: 0.3;
+            border-style: dashed;
+        }
+
+        .is-empty .podium-avatar {
+            background: transparent;
+            border: 2px dashed var(--border);
+        }
+
+        .is-empty .podium-name {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .is-empty .podium-score {
+            color: var(--muted);
+            font-size: 10px;
+        }
+
+        .spot-1 {
+            height: 100%;
+            z-index: 2;
+            border-color: var(--gold);
+        }
+
+        .spot-2 {
+            height: 80%;
+            border-color: var(--silver);
+        }
+
+        .spot-3 {
+            height: 70%;
+            border-color: var(--bronze);
+        }
+
+        .podium-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: #2a2a2a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 900;
+            margin-bottom: 16px;
+            border: 4px solid var(--surf);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .spot-1 .podium-avatar {
+            background: var(--gold);
+            color: #000;
+            outline: 3px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .spot-2 .podium-avatar {
+            background: var(--silver);
+            color: #000;
+        }
+
+        .spot-3 .podium-avatar {
+            background: var(--bronze);
+            color: #fff;
+        }
+
+        .podium-rank {
+            position: absolute;
+            bottom: -15px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 14px;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .spot-1 .podium-rank {
+            background: var(--gold);
+            color: #000;
+        }
+
+        .spot-2 .podium-rank {
+            background: var(--silver);
+            color: #000;
+        }
+
+        .spot-3 .podium-rank {
+            background: var(--bronze);
+            color: #fff;
+        }
+
+        .podium-name {
+            font-weight: 900;
+            font-size: 18px;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .podium-score {
+            font-family: monospace;
+            color: var(--acc);
+            font-weight: 700;
+            margin-top: 4px;
+        }
+
+        /* Badges */
+        .badge-pill {
+            background: rgba(252, 76, 2, 0.1);
+            color: var(--acc);
+            font-size: 10px;
+            font-weight: 900;
+            padding: 4px 10px;
+            border-radius: 100px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(252, 76, 2, 0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .badge-sniper {
+            background: #4CD964;
+            color: #fff;
+            border-color: #4CD964;
+        }
+
+        .badge-leader {
+            background: var(--gold);
+            color: #000;
+            border-color: var(--gold);
+        }
+
+        /* List Items */
+        .leaderboard-list {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .entry {
+            background: var(--surf);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: transform 0.2s;
+        }
+
+        .entry:hover {
+            transform: scale(1.02);
+        }
+
+        .rank-num {
+            width: 30px;
+            font-weight: 900;
+            color: var(--muted);
+            font-size: 18px;
+        }
+
+        .entry-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #2a2a2a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            color: var(--muted);
+        }
+
+        .entry-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .entry-name-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .entry-name {
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .entry-badges {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .entry-beat {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--acc);
+            font-style: italic;
+        }
+
+        .entry-stats {
+            text-align: right;
+        }
+
+        .entry-avg {
+            font-size: 18px;
+            font-weight: 900;
+        }
+
+        .entry-acc {
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 0;
+            color: var(--muted);
+        }
+
+        .clear-btn {
+            margin-top: 60px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <a href="index.html" class="back-link">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M13 8H3M3 8L7 4M3 8L7 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg> Back
+        </a>
+    </div>
+
+    <div class="podium-sec" id="podium">
+        <!-- Podium Injected Here -->
+    </div>
+
+    <div class="leaderboard-list" id="lb-list">
+        <!-- Remaining List Injected Here -->
+    </div>
+
+    <button class="clear-btn" onclick="clearBoard()">Reset Lab History</button>
+
+    <script>
+        const BADGE_ICONS = {
+            "First Blood": "🩸",
+            "Sniper": "🎯",
+            "Leader": "👑"
+        };
+
+        function getBadgeHTML(badge) {
+            let cls = "";
+            if (badge === "Sniper") cls = "badge-sniper";
+            if (badge === "Leader") cls = "badge-leader";
+            return `<span class="badge-pill ${cls}">${BADGE_ICONS[badge] || ""} ${badge}</span>`;
+        }
+
+        function loadLeaderboard() {
+            const podiumEl = document.getElementById('podium');
+            const listEl = document.getElementById('lb-list');
+            const data = JSON.parse(localStorage.getItem('fitts_leaderboard') || '[]');
+
+            // Sort by average time (asc)
+            data.sort((a, b) => a.avg - b.avg);
+
+            // Always show podium with placeholders if needed
+            const top3 = data.slice(0, 3);
+            const placeholders = [
+                { name: "Open Slot", avg: "---" },
+                { name: "Open Slot", avg: "---" },
+                { name: "Open Slot", avg: "---" }
+            ];
+
+            // Map existing data over placeholders
+            top3.forEach((e, i) => placeholders[i] = e);
+
+            // Reorder for centered: 2nd, 1st, 3rd
+            const podiumOrder = [placeholders[1], placeholders[0], placeholders[2]];
+
+            podiumEl.innerHTML = podiumOrder.map((entry, idx) => {
+                const rank = [2, 1, 3][idx];
+                const isEmpty = entry.avg === "---";
+                const spotCls = `spot-${rank} ${isEmpty ? 'is-empty' : ''}`;
+                return `
+                 <div class="podium-spot ${spotCls}">
+                    <div class="podium-avatar">${isEmpty ? '?' : entry.name.charAt(0).toUpperCase()}</div>
+                    <div class="podium-name">${entry.name}</div>
+                    <div class="podium-score">${isEmpty ? 'VACANT' : entry.avg + 'ms'}</div>
+                    <div class="podium-rank">${rank}</div>
+                 </div>
+               `;
+            }).join('');
+
+            // List items for remaining
+            const remaining = data.slice(3);
+            if (remaining.length === 0 && data.length > 0) {
+                listEl.innerHTML = '<div class="empty-state">Secure a top 3 spot to reach the podium!</div>';
+            } else if (data.length === 0) {
+                listEl.innerHTML = '<div class="empty-state">No segments logged yet. The hall of fame is waiting.</div>';
+            } else {
+                listEl.innerHTML = remaining.map((entry, idx) => `
+                <div class="entry">
+                    <div class="rank-num">${idx + 4}</div>
+                    <div class="entry-avatar">${entry.name.charAt(0).toUpperCase()}</div>
+                    <div class="entry-info">
+                        <div class="entry-name-row">
+                            <div class="entry-name">${entry.name}</div>
+                            ${entry.beat ? `<div class="entry-beat">${entry.beat}</div>` : ""}
+                        </div>
+                        <div class="entry-badges">
+                            ${(entry.badges || []).map(b => getBadgeHTML(b)).join('')}
+                        </div>
+                    </div>
+                    <div class="entry-stats">
+                        <div class="entry-avg">${entry.avg}ms</div>
+                        <div class="entry-acc">${entry.acc}% acc</div>
+                    </div>
+                </div>
+               `).join('');
+            }
+        }
+
+        function clearBoard() {
+            if (confirm('Are you sure you want to clear all scores?')) {
+                localStorage.removeItem('fitts_leaderboard');
+                loadLeaderboard();
+            }
+        }
+
+        window.onload = loadLeaderboard;
+    </script>
+</body>
+
+</html>
