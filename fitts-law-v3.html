@@ -1416,11 +1416,14 @@
 
     /* Home button */
     .home-link {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      margin-top: 20px;
-      padding: 12px 24px;
+      padding: 10px 20px;
       background: rgba(232, 255, 71, 0.06);
       border: 1px solid rgba(232, 255, 71, 0.2);
       border-radius: 50px;
@@ -1433,10 +1436,11 @@
       text-decoration: none;
       transition: all 0.2s ease;
       cursor: pointer;
+      backdrop-filter: blur(10px);
     }
 
     .home-link:hover {
-      background: rgba(232, 255, 71, 0.12);
+      background: rgba(232, 255, 71, 0.15);
       border-color: rgba(232, 255, 71, 0.4);
       transform: translateY(-2px);
       box-shadow: 0 8px 24px rgba(232, 255, 71, 0.15);
@@ -1449,6 +1453,8 @@
 </head>
 
 <body>
+
+  <a href="index.html" class="home-link">← Home</a>
 
   <!-- ════════════════ PHONE ════════════════ -->
   <div class="phone-wrap">
@@ -1631,7 +1637,8 @@
                 <div class="tip-row">
                   <div class="tip-num">4</div>
                   <div class="tip-text">Notice how <b style="color:var(--acc)">large yellow</b> buttons feel faster than
-                    <b style="color:var(--pink)">small pink</b> ones.</div>
+                    <b style="color:var(--pink)">small pink</b> ones.
+                  </div>
                 </div>
               </div>
             </div>
@@ -1764,8 +1771,6 @@
     </div>
     <div class="nav-dot-label" id="dot-label">TITLE</div>
   </div>
-
-  <a href="index.html" class="home-link">← Back to Home</a>
 
   <script>
     /* ════════ NAVIGATION ════════ */
