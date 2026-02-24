@@ -180,8 +180,8 @@
       --white: #ffffff;
       --lime: #CCFF00;
       --lime2: #b8e600;
-      --gray: #555;
-      --gray2: #888;
+      --gray: #888;
+      --gray2: #aaa;
       --cyan: #00e5ff;
       --pink: #ff4d8d;
       --orange: #ff6b2b;
@@ -1140,6 +1140,32 @@
       font-weight: 500;
     }
 
+    .cv-title {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      color: var(--white);
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      opacity: 0.9;
+    }
+
+    .insight-card {
+      margin: 0 18px 24px;
+      background: var(--card);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 14px;
+      padding: 18px;
+    }
+
+    .insight-txt {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      color: #ccc;
+      line-height: 1.6;
+      font-weight: 300;
+    }
+
     .r-cta {
       padding: 0 18px 28px;
       display: flex;
@@ -1399,7 +1425,12 @@
           <!-- ── SCREEN 3: EXPERIMENT ── -->
           <div class="screen" id="s3">
             <div class="e-hdr">
-              <span class="e-title">FITTS' LAW</span>
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="e-title">FITTS' LAW</span>
+                <div style="font-family:'Space Mono',monospace; font-size:9px; color:var(--lime); text-align:right;">
+                  <span id="profile-name">ATHLETE</span> | XP: <span id="xp-count">0</span>
+                </div>
+              </div>
               <div class="e-prog-wrap">
                 <div class="e-prog-bar">
                   <div class="e-prog-fill" id="ePF"></div>
@@ -1521,7 +1552,7 @@
                   onclick="exportData()">💾 EXPORT DATA</button>
               </div>
               <button class="btn-outline"
-                style="width: calc(100% - 36px); margin: 0 18px 24px; padding: 14px; color: var(--gray); border-color: rgba(255,255,255,0.1); font-size: 11px; letter-spacing: 2px;"
+                style="width: calc(100% - 36px); margin: 0 18px 24px; padding: 14px; color: var(--gray2); border-color: rgba(255,255,255,0.1); font-size: 11px; letter-spacing: 2px;"
                 onclick="goTo('s1')">EXIT TO BASE</button>
             </div>
           </div>
