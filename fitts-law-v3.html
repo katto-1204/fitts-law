@@ -448,6 +448,22 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     }
 
+    .tgt.pulse {
+      animation: tgtPulse 0.5s infinite alternate ease-in-out;
+    }
+
+    @keyframes tgtPulse {
+      from {
+        transform: scale(1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      }
+
+      to {
+        transform: scale(1.05);
+        box-shadow: 0 0 20px rgba(252, 76, 2, 0.4);
+      }
+    }
+
     .tgt.active-t {
       opacity: 1;
       pointer-events: auto;
@@ -843,9 +859,13 @@
                 <span class="stat-val" id="live-pace">—</span>
                 <span class="stat-lbl">Pace</span>
               </div>
+              <div class="stat-pill" id="v3-ghost-pill" style="display: none;">
+                <div class="stat-val" id="v3-ghost-delta" style="color: #FC4C02;">+0.0s</div>
+                <div class="stat-lbl">GHOST</div>
+              </div>
               <div class="stat-pill">
-                <span class="stat-val" id="hit-count">0</span>
-                <span class="stat-lbl">Hits</span>
+                <div class="stat-val" id="hit-count">0</div>
+                <div class="stat-lbl">HITS</div>
               </div>
             </div>
           </div>
@@ -916,8 +936,32 @@
             </div>
           </div>
 
-          <div style="padding: 0 26px 40px;">
-            <button class="cta-btn" onclick="initArena(); goTo('s3');">Retry Trial</button>
+          <div class="section-label" style="padding: 0 26px; margin-top: 20px;">Precision Map</div>
+          <div id="v3-heatmap"
+            style="height: 100px; margin: 0 26px; border: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.2); position: relative; border-radius: 4px; overflow: hidden;">
+            <!-- Heatmap via JS -->
+          </div>
+
+          <div class="section-label" style="padding: 0 26px; margin-top: 20px;">Efficiency Profile</div>
+          <div id="fitts-plot-v3"
+            style="height: 100px; margin: 0 26px; border: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.2); position: relative; overflow: hidden;">
+            <!-- Scatter Plot via JS -->
+            <div style="position: absolute; bottom: 4px; right: 4px; font-size: 8px; color: rgba(255,255,255,0.2);">ID →
+            </div>
+          </div>
+
+          <div id="coach-ai-v3"
+            style="margin: 16px 26px; padding: 12px; border-left: 2px solid #FC4C02; background: rgba(252, 76, 2, 0.05); font-size: 11px; line-height: 1.4; color: #ddd;">
+            <div
+              style="font-weight: 900; color: #FC4C02; font-size: 9px; margin-bottom: 4px; text-transform: uppercase;">
+              Coach AI Performance Delta</div>
+            <span id="coach-txt-v3">Calculating segment dynamics...</span>
+          </div>
+
+          <div style="padding: 0 26px 40px; display: flex; gap: 12px;">
+            <button class="cta-btn" style="flex: 1;" onclick="initArena(); goTo('s3');">Retry Trial</button>
+            <button class="cta-btn" style="flex: 1; border: 2px solid #FC4C02; background: transparent; color: #FC4C02;"
+              onclick="exportSegment()">Export Segment</button>
           </div>
         </div>
 
@@ -948,6 +992,32 @@
     let expState = 'idle';
     let bpm = 120;
     let bpmInterval = null;
+    let combo = 0;
+    let diffMult = 1.0;
+
+    let cumTimes = [];
+    const urlParams = new URLSearchParams(window.location.search);
+    const isGP = urlParams.get('gp') === 'true';
+    const gpSeed = parseInt(urlParams.get('seed') || '0');
+
+    function seededShuffle(arr, seed) {
+      const rand = mulberry32(seed);
+      let a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(rand() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function mulberry32(a) {
+      return function () {
+        var t = a += 0x6D2B79F5;
+        t = Math.imul(t ^ t >>> 15, t | 1);
+        t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      }
+    }
 
     function shuffle(arr) {
       return [...arr].sort(() => Math.random() - 0.5);
@@ -977,16 +1047,29 @@
     }
 
     function initArena() {
-      sequence = shuffle(BTN_CONFIG);
+      if (isGP) {
+        sequence = seededShuffle(BTN_CONFIG, gpSeed);
+        document.querySelector('.hero-title').textContent = "GRAND PRIX";
+      } else {
+        sequence = shuffle(BTN_CONFIG);
+      }
+
       currentIdx = 0;
       misses = 0;
+      cumTimes = [];
       timings = { large: [], medium: [], small: [] };
+      bpm = 120;
       expState = 'wait-anchor';
+
+      const pbCum = JSON.parse(localStorage.getItem('fitts_pb_cum_v3') || '[]');
+      if (pbCum.length) document.getElementById('v3-ghost-pill').style.display = 'flex';
+      else document.getElementById('v3-ghost-pill').style.display = 'none';
+
 
       document.getElementById('hit-count').textContent = '0';
       document.getElementById('live-pace').textContent = '—';
       document.getElementById('p-bar').style.width = '0%';
-      setToast('GO TO START');
+      setToast('READY');
 
       document.getElementById('anchor-btn').classList.add('waiting');
       buildButtons();
@@ -1001,11 +1084,11 @@
 
       sequence.forEach(cfg => {
         const btn = document.createElement('div');
-        btn.className = 'tgt';
+        btn.className = 'tgt pulse';
         btn.id = `eb-${cfg.id}`;
         btn.textContent = cfg.label;
 
-        const s = SZ[cfg.type];
+        const s = SZ[cfg.type] * diffMult;
         btn.style.width = s + 'px';
         btn.style.height = s + 'px';
         btn.style.left = (cfg.xPct * W - s / 2) + 'px';
@@ -1085,7 +1168,29 @@
       if (expState !== 'wait-target') return;
 
       const elapsed = Math.round(performance.now() - startTime);
-      timings[type].push(elapsed);
+
+      // Adaptive difficulty logic (v6.7)
+      if (elapsed < 500) {
+        combo++;
+        if (combo % 3 === 0) {
+          diffMult = Math.max(0.6, diffMult - 0.05); // Shrink targets for pros
+          setToast(`COMBO ${combo}! SPEED BOOST: -5% SIZE`);
+        }
+      } else if (elapsed > 800) {
+        combo = 0;
+        diffMult = Math.min(1.2, diffMult + 0.05); // Grow targets to help
+        setToast(`PACE DECAY. RECOVERING PRECISION.`);
+      }
+
+      // Calculate actual distance at moment of click
+      const anchor = document.getElementById('anchor-btn').getBoundingClientRect();
+      const targetRect = btn.getBoundingClientRect();
+      const clickX = e ? (e.clientX - targetRect.left) / targetRect.width : 0.5;
+      const clickY = e ? (e.clientY - targetRect.top) / targetRect.height : 0.5;
+
+      timings[type].push({ mt: elapsed, dist, size: SZ[type], clickX, clickY });
+      cumTimes.push((cumTimes.length ? cumTimes[cumTimes.length - 1] : 0) + elapsed);
+      updateGhostPace();
 
       // Visual feedback
       createRipple(e, btn);
@@ -1095,14 +1200,22 @@
       currentIdx++;
 
       // Stats & Progress
-      const allTimes = Object.values(timings).flat();
-      const avg = Math.round(allTimes.reduce((a, b) => a + b, 0) / allTimes.length);
+      const allTimings = Object.values(timings).flat().map(t => t.mt);
+      const avg = Math.round(allTimings.reduce((a, b) => a + b, 0) / allTimings.length);
       document.getElementById('hit-count').textContent = currentIdx;
       document.getElementById('live-pace').textContent = elapsed + 'ms';
       document.getElementById('p-bar').style.width = (currentIdx / sequence.length * 100) + '%';
 
       if (currentIdx < sequence.length) {
         expState = 'wait-anchor';
+
+        // Update next button size (Adaptive v6.7)
+        const next = sequence[currentIdx];
+        const nextBtn = document.getElementById(`eb-${next.id}`);
+        const s = SZ[next.type] * diffMult;
+        nextBtn.style.width = s + 'px';
+        nextBtn.style.height = s + 'px';
+
         document.getElementById('anchor-btn').classList.add('waiting');
         setToast('RETURN');
         bpm += 2; // Increase heart rate
@@ -1115,20 +1228,63 @@
       expState = 'done';
       stopBpm();
 
-      const allTimes = Object.values(timings).flat();
+      const allData = Object.values(timings).flat();
+      const allTimes = allData.map(t => t.mt);
       const avg = Math.round(allTimes.reduce((a, b) => a + b, 0) / allTimes.length);
-      const acc = Math.round((allTimes.length / (allTimes.length + misses)) * 100);
+      const acc = Math.round((allData.length / (allData.length + misses)) * 100);
 
       // Update Summaries
       document.getElementById('r-avg').textContent = avg + 'ms';
-      document.getElementById('r-total').textContent = allTimes.length;
+      document.getElementById('r-total').textContent = allData.length;
       document.getElementById('r-acc').textContent = acc + '%';
 
       // Update Splits
       ['large', 'medium', 'small'].forEach(key => {
-        const arr = timings[key];
+        const arr = timings[key].map(t => t.mt);
         const val = arr.length > 0 ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) + 'ms' : '--';
         document.getElementById(`s-${key}`).textContent = val;
+      });
+
+      // ── FITTS PLOT & COACH AI (v6.3) ──
+      const plot = document.getElementById('fitts-plot-v3');
+      plot.querySelectorAll('.dot').forEach(d => d.remove());
+
+      const sessionData = allData.map(d => {
+        const id = Math.log2((2 * d.dist) / d.size);
+        return { id, mt: d.mt };
+      });
+
+      const maxID = Math.max(...sessionData.map(d => d.id), 5);
+      const minID = Math.min(...sessionData.map(d => d.id), 1);
+      const maxMT = Math.max(...sessionData.map(d => d.mt), 1000);
+
+      sessionData.forEach(d => {
+        const dot = document.createElement('div');
+        dot.className = 'dot';
+        const left = ((d.id - minID) / (maxID - minID)) * 90 + 5;
+        const bottom = (d.mt / maxMT) * 90 + 5;
+        dot.style.cssText = `position:absolute; bottom:${bottom}%; left:${left}%; width:5px; height:5px; background:#FC4C02; border-radius:50%; box-shadow:0 0 8px rgba(252, 76, 2, 0.4);`;
+        plot.appendChild(dot);
+      });
+
+      // Coach AI
+      const topSpeed = Math.min(...allTimes);
+      let coachTxt = "";
+      if (avg < 500 && acc >= 98) coachTxt = "SEGMENT LEADER: Movement efficiency is world-class. You are effectively counter-steering target drift with zero overshoot.";
+      else if (acc < 90) coachTxt = "CAUTION: Target drift is causing ballistic errors. Your precision is dropping below segment safety levels. Reduce heart rate.";
+      else coachTxt = "SOLID EFFORT: Your movement profiles show consistent linear tracking. To improve, focus on the 'snap' to target before the drift accelerates.";
+      document.getElementById('coach-txt-v3').innerHTML = coachTxt;
+
+      // DRAW HEATMAP (v6.7)
+      const hm = document.getElementById('v3-heatmap');
+      hm.querySelectorAll('.hm-dot-v3').forEach(d => d.remove());
+      allData.forEach(d => {
+        if (d.clickX !== undefined) {
+          const dot = document.createElement('div');
+          dot.className = 'hm-dot-v3';
+          dot.style.cssText = `position:absolute; left:${d.clickX * 100}%; top:${d.clickY * 100}%; width:5px; height:5px; background:#FC4C02; border-radius:50%; transform:translate(-50%,-50%); box-shadow:0 0 10px rgba(252, 76, 2, 0.4);`;
+          hm.appendChild(dot);
+        }
       });
 
       // Personal Best check
@@ -1177,17 +1333,36 @@
         }
       }
 
+      // XP CALCULATION (v6.0)
+      const baseXP = 100;
+      const accXP = acc * 5;
+      const speedXP = Math.max(0, Math.round((1000 - avg) / 2));
+      const totalXP = Math.round((baseXP + accXP + speedXP) * 2.0); // V3 multiplier: 2.0
+
+      const currentXP = parseInt(localStorage.getItem('fitts_xp') || '0');
+      localStorage.setItem('fitts_xp', currentXP + totalXP);
+
       const newEntry = {
         name: userName,
         avg: avg,
         acc: acc,
         date: new Date().toISOString(),
         badges: entryBadges,
-        beat: beatMessage
+        beat: beatMessage,
+        version: "v3",
+        hw: localStorage.getItem('fitts_hardware') || 'mouse',
+        xpGain: totalXP,
+        fittsData: sessionData
       };
 
       leaderboard.push(newEntry);
       localStorage.setItem('fitts_leaderboard', JSON.stringify(leaderboard));
+
+      // Update Cumulative PB (v6.5)
+      const prevPBCum = JSON.parse(localStorage.getItem('fitts_pb_cum_v3') || '[]');
+      if (!prevPBCum.length || cumTimes[cumTimes.length - 1] < prevPBCum[prevPBCum.length - 1]) {
+        localStorage.setItem('fitts_pb_cum_v3', JSON.stringify(cumTimes));
+      }
 
       // Visual feedback for beat message
       if (beatMessage) {
@@ -1233,7 +1408,50 @@
       parent.appendChild(b);
       setTimeout(() => b.remove(), 800);
     }
+    function exportSegment() {
+      const allTrials = [];
+      Object.keys(timings).forEach(size => {
+        timings[size].forEach((time, idx) => {
+          allTrials.push({ size, time, index: idx });
+        });
+      });
+
+      const data = {
+        athlete: localStorage.getItem('fitts_user_name') || 'Guest',
+        hardware: localStorage.getItem('fitts_hardware') || 'mouse',
+        timestamp: new Date().toISOString(),
+        version: 'v3',
+        metrics: {
+          avgMT: document.getElementById('r-avg').textContent,
+          acc: document.getElementById('r-acc').textContent,
+          targets: document.getElementById('r-total').textContent
+        },
+        trials: allTrials
+      };
+
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `fitts_segment_v3_${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+    function updateGhostPace() {
+      const pbTimes = JSON.parse(localStorage.getItem('fitts_pb_cum_v3') || '[]');
+      if (!pbTimes.length) return;
+
+      const delta = document.getElementById('v3-ghost-delta');
+      const currentCum = cumTimes[cumTimes.length - 1];
+      const pbCum = pbTimes[cumTimes.length - 1];
+      const diff = (currentCum - pbCum) / 1000;
+
+      delta.textContent = (diff <= 0 ? '' : '+') + diff.toFixed(2) + 's';
+      delta.style.color = diff <= 0 ? '#4CD964' : '#FF3B30';
+    }
   </script>
 </body>
+
+</html>
 
 </html>

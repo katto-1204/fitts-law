@@ -436,6 +436,22 @@
         height: 400px;
       }
     }
+
+    .tgt.pulse {
+      animation: tgtPulse 0.5s infinite alternate ease-in-out;
+    }
+
+    @keyframes tgtPulse {
+      from {
+        transform: scale(1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      }
+
+      to {
+        transform: scale(1.05);
+        box-shadow: 0 0 15px var(--accent);
+      }
+    }
   </style>
 </head>
 
@@ -447,8 +463,11 @@
   <header class="hud-header">
     <div class="hud-logo">VIPER COMMAND</div>
     <div class="status-group">
+      <div id="v2-ghost-status" class="status-item" style="display: none; border-color: #FC4C02;"><span>GHOST:</span>
+        <span id="v2-ghost-delta" style="color: #FC4C02;">+0.00s</span>
+      </div>
       <div class="status-item"><span>SECTOR:</span> V2-PURPLE</div>
-      <div class="status-item"><span>DIFFICULTY:</span> AVERAGE</div>
+      <div class="status-item"><span>SYS:</span> ACTIVE</div>
       <div class="status-item"><span>STATUS:</span> <b id="status-txt">ACTIVE</b></div>
     </div>
   </header>
@@ -466,12 +485,10 @@
       <div class="telemetry-row">
         <div class="tel-val" id="avg-time">—</div>
         <div class="tel-lbl">Avg Response (ms)</div>
-        <div class="mini-chart" id="chart-container">
-          <!-- Bars generated via JS -->
-          <div class="chart-bar" style="height: 20%"></div>
-          <div class="chart-bar" style="height: 40%"></div>
-          <div class="chart-bar" style="height: 30%"></div>
-          <div class="chart-bar" style="height: 60%"></div>
+        <div id="fitts-plot-v2"
+          style="height: 100px; width: 100%; border-top: 1px solid var(--border); margin-top: 16px; position: relative;">
+          <!-- Scatter Plot via JS -->
+          <div style="position: absolute; bottom: 0; left: 0; font-size: 8px; color: var(--muted2);">ID →</div>
         </div>
       </div>
 
@@ -496,6 +513,12 @@
         <div class="log-item active">Initializing tactical arena...</div>
         <div class="log-item">Awaiting pilot authorization...</div>
         <div class="log-item">Standard movement benchmarks active.</div>
+      </div>
+
+      <div class="panel-label" style="margin-top: 40px;">Coach Diagnostic</div>
+      <div id="coach-report-v2"
+        style="font-size: 11px; color: var(--accent); font-family: var(--font-mono); line-height: 1.4;">
+        Awaiting final telemetry...
       </div>
 
       <div class="panel-label" style="margin-top: 40px;">Hardware</div>
@@ -533,9 +556,33 @@
           <div class="split-lbl">TARGETS</div>
         </div>
       </div>
-      <button class="btn-action" onclick="location.reload()">RE-CALIBRATE</button>
+
+      <div class="panel" style="margin-top: 24px; border-top: 1px solid var(--border); padding: 16px;">
+        <div class="panel-header">
+          <div class="panel-title">PRECISION HEATMAP</div>
+        </div>
+        <div id="v2-heatmap"
+          style="height: 120px; background: rgba(0,0,0,0.5); position: relative; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; margin-top: 8px;">
+          <!-- Dots via JS -->
+        </div>
+      </div>
+
+      <div style="margin-top: 24px;">
+        <div id="coach-report-v2" class="coach-diagnostic"
+          style="border: 1px solid var(--border-glow); padding: 12px; background: rgba(168, 85, 247, 0.05);">
+          > Awaiting pilot data...
+        </div>
+      </div>
+      <div style="display: flex; gap: 12px; margin-top: 24px;">
+        <button class="btn-action"
+          style="flex: 1; background: var(--accent); color: #fff; border: none; font-weight: 800; letter-spacing: 1px;"
+          onclick="location.reload()">RE-CALIBRATE</button>
+        <button class="btn-action"
+          style="flex: 1; border: 1px solid var(--accent); background: transparent; color: var(--accent); font-weight: 800; letter-spacing: 1px;"
+          onclick="exportTelemetry()">EXPORT LOG</button>
+      </div>
       <a href="index.html" class="btn-action"
-        style="background: transparent; color: var(--muted); border: 1px solid var(--border); display: block; margin-top: 12px; text-decoration: none; padding: 12px;">EXIT
+        style="background: transparent; color: var(--muted2); border: 1px solid var(--border); display: block; margin-top: 12px; text-decoration: none; padding: 12px; text-align: center; font-size: 10px; font-weight: 800; letter-spacing: 2px;">EXIT
         TO BASE</a>
     </div>
   </div>
@@ -561,6 +608,31 @@
     let timings = { large: [], medium: [], small: [] };
     let misses = 0;
     let expState = 'idle'; // idle | wait-anchor | run
+    let v2Results = [];
+
+    let cumTimes = [];
+    const urlParams = new URLSearchParams(window.location.search);
+    const isGP = urlParams.get('gp') === 'true';
+    const gpSeed = parseInt(urlParams.get('seed') || '0');
+
+    function mulberry32(a) {
+      return function () {
+        var t = a += 0x6D2B79F5;
+        t = Math.imul(t ^ t >>> 15, t | 1);
+        t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      }
+    }
+
+    function seededShuffle(arr, seed) {
+      const rand = mulberry32(seed);
+      let a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(rand() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
 
     function closeOverlay(id) {
       document.getElementById(id).classList.add('hidden');
@@ -571,11 +643,23 @@
       const arena = document.getElementById('arena');
       arena.querySelectorAll('.tgt').forEach(t => t.remove());
 
-      sequence = [...BTN_CONFIG].sort(() => Math.random() - 0.5);
+      if (isGP) {
+        sequence = seededShuffle([...BTN_CONFIG], gpSeed);
+        document.getElementById('status-txt').textContent = 'GP MODE';
+        addLog(`Daily GP initialized. Seed: ${gpSeed}`);
+      } else {
+        sequence = [...BTN_CONFIG].sort(() => Math.random() - 0.5);
+      }
+
       currentIdx = 0;
       timings = { large: [], medium: [], small: [] };
       misses = 0;
+      cumTimes = [];
       expState = 'wait-anchor';
+
+      const pbCum = JSON.parse(localStorage.getItem('fitts_pb_cum_v2') || '[]');
+      if (pbCum.length) document.getElementById('v2-ghost-status').style.display = 'flex';
+      else document.getElementById('v2-ghost-status').style.display = 'none';
 
       addLog('Arena initialized. Ready for calibration.');
       buildTargets();
@@ -588,7 +672,7 @@
 
       sequence.forEach(cfg => {
         const btn = document.createElement('div');
-        btn.className = 'tgt';
+        btn.className = 'tgt pulse';
         btn.id = `eb-${cfg.id}`;
         btn.textContent = cfg.label;
 
@@ -600,10 +684,21 @@
 
         btn.onclick = (e) => {
           e.stopPropagation();
-          onExpClick(cfg.id, cfg.type, btn);
+          onExpClick(cfg.id, cfg.type, btn, e);
         };
         arena.appendChild(btn);
       });
+    }
+
+    function startExperiment() {
+      if (expState !== 'idle') return;
+      document.getElementById('start-overlay').classList.add('hidden');
+      document.getElementById('v2-ghost-status').style.display = 'flex';
+
+      expState = 'wait-anchor';
+      document.getElementById('anchor-btn').classList.add('waiting');
+      addLog('Experiment starting. Calibrate on the center anchor.', 'active');
+      showNext();
     }
 
     function onAnchorClick() {
@@ -631,12 +726,20 @@
       startTime = performance.now();
     }
 
-    function onExpClick(id, type, btn) {
+    function onExpClick(id, type, btn, e) {
       if (expState !== 'run') return;
       if (id !== sequence[currentIdx].id) return;
 
       const ms = Math.round(performance.now() - startTime);
       timings[type].push(ms);
+
+      const rect = btn.getBoundingClientRect();
+      const clickX = e ? (e.clientX - rect.left) / rect.width : 0.5;
+      const clickY = e ? (e.clientY - rect.top) / rect.height : 0.5;
+      v2Results.push({ type, time: ms, clickX, clickY });
+
+      cumTimes.push((cumTimes.length ? cumTimes[cumTimes.length - 1] : 0) + ms);
+      updateGhostPace();
 
       addLog(`Target ${sequence[currentIdx].label} captured in ${ms}ms.`, 'done');
 
@@ -668,15 +771,6 @@
       if (chartRows.children.length > 20) chartRows.removeChild(chartRows.firstChild);
     }
 
-    function addLog(msg, status = '') {
-      const log = document.getElementById('mission-log');
-      const item = document.createElement('div');
-      item.className = 'log-item' + (status ? ' ' + status : ' active');
-      item.innerHTML = `<span>[${new Date().toLocaleTimeString('en-GB', { hour12: false })}]</span> ${msg}`;
-      log.prepend(item);
-      if (log.children.length > 15) log.lastChild.remove();
-    }
-
     function endExperiment() {
       expState = 'done';
       document.getElementById('status-txt').textContent = 'RECAP';
@@ -690,17 +784,89 @@
       document.getElementById('r-acc').textContent = acc + '%';
       document.getElementById('r-total').textContent = all.length;
 
+      // ── FITTS PLOT & COACH AI (v6.3) ──
+      const plot = document.getElementById('fitts-plot-v2');
+      plot.querySelectorAll('.dot').forEach(d => d.remove());
+
+      const sessionData = [];
+      Object.keys(timings).forEach(sizeType => {
+        timings[sizeType].forEach((mt, idx) => {
+          // Find target config to get distance from anchor (0.5, 0.85 approx)
+          const cfg = BTN_CONFIG.find(c => c.type === sizeType); // Simplified
+          const dist = Math.sqrt(Math.pow(cfg.xPct - 0.5, 2) + Math.pow(cfg.yPct - 0.9, 2)) * 500;
+          const id = Math.log2((2 * dist) / SZ[sizeType]);
+          sessionData.push({ id, mt });
+        });
+      });
+
+      const maxID = Math.max(...sessionData.map(d => d.id), 5);
+      const minID = Math.min(...sessionData.map(d => d.id), 1);
+      const maxMT = Math.max(...sessionData.map(d => d.mt), 1000);
+
+      sessionData.forEach(d => {
+        const dot = document.createElement('div');
+        dot.className = 'dot';
+        const left = ((d.id - minID) / (maxID - minID)) * 90 + 5;
+        const bottom = (d.mt / maxMT) * 90 + 5;
+        dot.style.cssText = `position:absolute; bottom:${bottom}%; left:${left}%; width:4px; height:4px; background:var(--accent); border-radius:50%; box-shadow:0 0 5px var(--accent-glow); opacity: 0.8;`;
+        plot.appendChild(dot);
+      });
+
+      // DRAW HEATMAP (v6.7)
+      const hm = document.getElementById('v2-heatmap');
+      hm.querySelectorAll('.dot').forEach(d => d.remove());
+      v2Results.forEach(r => {
+        const dot = document.createElement('div');
+        dot.className = 'dot';
+        dot.style.cssText = `position:absolute; left:${r.clickX * 100}%; top:${r.clickY * 100}%; width:5px; height:5px; background:var(--accent); border-radius:50%; box-shadow:0 0 10px var(--accent); opacity:0.6; transform:translate(-50%,-50%);`;
+        hm.appendChild(dot);
+      });
+
+      // Coach Diagnostic
+      const highID = sessionData.filter(d => d.id > 3.5);
+      const avgHigh = highID.length ? highID.reduce((a, b) => a + b.mt, 0) / highID.length : 0;
+      let diagnostic = "";
+      if (avgHigh > avgVal * 1.4) {
+        diagnostic = "DIAGNOSTIC: Precision decay at high-ID. System suggests focusing on [S] class targets to rewire neuromuscular pathways.";
+      } else if (acc < 95) {
+        diagnostic = "DIAGNOSTIC: Excessive jitter. Accuracy variance exceeds safety tolerances. Recalibrate for 100% precision.";
+      } else {
+        diagnostic = "DIAGNOSTIC: Optimal motor control. Correlation coefficient stable. Promotion to ELITE Pilot recommended.";
+      }
+      document.getElementById('coach-report-v2').innerHTML = `> ${diagnostic}`;
+
       // Persistence
       const userName = localStorage.getItem('fitts_user_name') || 'Guest Athlete';
       const leaderboard = JSON.parse(localStorage.getItem('fitts_leaderboard') || '[]');
-      leaderboard.push({
+
+      // XP CALCULATION (v6.0)
+      const baseXP = 100;
+      const accXP = acc * 5;
+      const speedXP = Math.max(0, Math.round((1000 - avgVal) / 2));
+      const totalXP = Math.round((baseXP + accXP + speedXP) * 1.5); // V2 multiplier: 1.5
+
+      const currentXP = parseInt(localStorage.getItem('fitts_xp') || '0');
+      localStorage.setItem('fitts_xp', currentXP + totalXP);
+
+      const newEntry = {
         name: userName,
         avg: avgVal,
         acc: acc,
         date: new Date().toISOString(),
-        version: "v2"
-      });
+        version: "v2",
+        hw: localStorage.getItem('fitts_hardware') || 'mouse',
+        xpGain: totalXP,
+        fittsData: sessionData
+      };
+
+      leaderboard.push(newEntry);
       localStorage.setItem('fitts_leaderboard', JSON.stringify(leaderboard));
+
+      // Update Cumulative PB (v6.5)
+      const prevPBCum = JSON.parse(localStorage.getItem('fitts_pb_cum_v2') || '[]');
+      if (!prevPBCum.length || cumTimes[cumTimes.length - 1] < prevPBCum[prevPBCum.length - 1]) {
+        localStorage.setItem('fitts_pb_cum_v2', JSON.stringify(cumTimes));
+      }
     }
 
     // Arena Miss
@@ -710,6 +876,48 @@
         addLog('ARENA MISS REGISTERED', 'failed');
       }
     };
+    function exportTelemetry() {
+      const allTrials = [];
+      Object.keys(timings).forEach(size => {
+        timings[size].forEach((time, idx) => {
+          allTrials.push({ size, time, index: idx });
+        });
+      });
+
+      const data = {
+        athlete: localStorage.getItem('fitts_user_name') || 'Guest',
+        hardware: localStorage.getItem('fitts_hardware') || 'mouse',
+        timestamp: new Date().toISOString(),
+        version: 'v2',
+        metrics: {
+          avgMT: document.getElementById('r-avg').textContent,
+          acc: document.getElementById('r-acc').textContent,
+          targets: document.getElementById('r-total').textContent
+        },
+        trials: allTrials
+      };
+
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `fitts_telemetry_v2_${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function updateGhostPace() {
+      const pbTimes = JSON.parse(localStorage.getItem('fitts_pb_cum_v2') || '[]');
+      if (!pbTimes.length) return;
+
+      const delta = document.getElementById('v2-ghost-delta');
+      const currentCum = cumTimes[cumTimes.length - 1];
+      const pbCum = pbTimes[cumTimes.length - 1];
+      const diff = (currentCum - pbCum) / 1000;
+
+      delta.textContent = (diff <= 0 ? '' : '+') + diff.toFixed(2) + 's';
+      delta.style.color = diff <= 0 ? '#4CD964' : '#FF3B30';
+    }
   </script>
 </body>
 
