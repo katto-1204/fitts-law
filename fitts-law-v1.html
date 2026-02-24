@@ -1572,7 +1572,7 @@
     ];
     const SZ = { large: 'sz-lg', medium: 'sz-md', small: 'sz-sm' };
 
-    let G = { phase: 'idle', trial: 0, t0: 0, results: [], hits: 0, misses: 0, timer: null };
+    let G = { phase: 'idle', trial: 0, t0: 0, results: [], hits: 0, misses: 0, timer: null, cumTimes: [] };
 
     /* ── BUILD TARGETS ── */
     function buildTargets() {
@@ -1588,14 +1588,14 @@
         btn.style.top = Math.min(t.topP / 100 * fH, fH - sz - 32) + 'px';
         btn.style.left = Math.min(t.leftP / 100 * fW, fW - sz - 6) + 'px';
         btn.innerHTML = `${t.label}<span class="tgt-sub">${t.size.toUpperCase()}</span><span class="tgt-dist">${t.distance}</span>`;
-        btn.addEventListener('click', () => handleTarget(t.id));
+        btn.addEventListener('click', (e) => onHit(e, t.id));
         field.appendChild(btn);
       });
     }
 
     /* ── START EXP ── */
     function startExp() {
-      G = { phase: 'awaitStart', trial: 0, t0: 0, results: [], hits: 0, misses: 0, timer: null };
+      G = { phase: 'awaitStart', trial: 0, t0: 0, results: [], hits: 0, misses: 0, timer: null, cumTimes: [] };
       goTo('s3');
       setTimeout(() => { buildTargets(); updateUI(); }, 120);
     }
@@ -1603,7 +1603,7 @@
     /* ── START CLICK ── */
     function handleStart() {
       if (G.phase !== 'awaitStart') return;
-      G.phase = 'awaitTarget'; G.t0 = performance.now();
+      G.phase = 'playing'; G.t0 = performance.now();
       const sb = document.getElementById('startBtn');
       sb.classList.remove('pulsing'); sb.classList.add('active-s');
       const t = TRIALS[G.trial];
@@ -1638,10 +1638,10 @@
         showToast(elapsed < 600 ? '⚡ FAST! ' + Math.round(elapsed) + 'ms' : '✓ HIT — ' + Math.round(elapsed) + 'ms', elapsed < 600 ? 'fast' : '');
       } else {
         G.misses++;
-        el.classList.add('missed');
+        targetEl.classList.add('missed');
         showToast('✗ MISS — tap the glowing one!', 'slow');
-        setTimeout(() => el.classList.remove('missed'), 400);
-        resetRound(); return;
+        setTimeout(() => targetEl.classList.remove('missed'), 400);
+        return;
       }
       G.cumTimes.push((G.cumTimes.length ? G.cumTimes[G.cumTimes.length - 1] : 0) + elapsed);
       updateGhostPace();
@@ -1813,6 +1813,16 @@
       if (leaderboard.length === 0) entryBadges.push("First Blood");
       if (acc === 100) entryBadges.push("Sniper");
 
+      // v7.0 Badges
+      if (G.hits === 10) entryBadges.push("CENTURION");
+      if (avg < 400) entryBadges.push("SPEED DEMON");
+
+      const preciseHits = hits.filter(r => {
+        const dX = r.clickX - 0.5, dY = r.clickY - 0.5;
+        return Math.sqrt(dX * dX + dY * dY) < 0.15;
+      });
+      if (preciseHits.length > G.hits * 0.8) entryBadges.push("PRECISION MASTER");
+
       const sortedPrev = [...leaderboard].sort((a, b) => a.avg - b.avg);
       if (sortedPrev.length > 0) {
         if (avg < sortedPrev[0].avg) {
@@ -1833,18 +1843,19 @@
       const currentXP = parseInt(localStorage.getItem('fitts_xp') || '0');
       localStorage.setItem('fitts_xp', currentXP + totalXP);
 
-      leaderboard.push({
+      const entry = {
         name: userName,
-        avg: avg,
-        acc: acc,
-        date: new Date().toISOString(),
+        avg,
+        acc,
+        timestamp: new Date().toISOString(),
         badges: entryBadges,
         beat: beatMessage,
-        version: "v1",
+        version: G.legacy ? 'v0' : 'v1',
         hw: localStorage.getItem('fitts_hardware') || 'mouse',
         xpGain: totalXP,
         fittsData: sessionData // For later scatter plot recall
-      });
+      };
+      leaderboard.push(entry);
       localStorage.setItem('fitts_leaderboard', JSON.stringify(leaderboard));
 
       // Update Cumulative PB (v6.5)

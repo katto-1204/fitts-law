@@ -1342,15 +1342,27 @@
       const currentXP = parseInt(localStorage.getItem('fitts_xp') || '0');
       localStorage.setItem('fitts_xp', currentXP + totalXP);
 
+      // Badge awards (v6.8)
+      if (allData.length === sequence.length) entryBadges.push('CENTURION'); // All targets hit
+      if (avg < 400) entryBadges.push('SPEED DEMON'); // Fast average time
+
+      const preciseHits = allData.filter(d => {
+        const distFromCenter = Math.sqrt(Math.pow(d.clickX - 0.5, 2) + Math.pow(d.clickY - 0.5, 2));
+        return distFromCenter < 0.15; // Click within 15% of target center
+      });
+      if (preciseHits.length > sequence.length * 0.8) entryBadges.push('PRECISION MASTER'); // 80% or more precise clicks
+
+      const hw = localStorage.getItem('fitts_hardware') || 'mouse';
+
       const newEntry = {
         name: userName,
         avg: avg,
         acc: acc,
         date: new Date().toISOString(),
-        badges: entryBadges,
+        badges: entryBadges, // Use the combined badges
         beat: beatMessage,
         version: "v3",
-        hw: localStorage.getItem('fitts_hardware') || 'mouse',
+        hw: hw, // Use the determined hardware
         xpGain: totalXP,
         fittsData: sessionData
       };

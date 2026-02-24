@@ -639,6 +639,15 @@
       if (id === 'start-overlay') initArena();
     }
 
+    function addLog(msg, type = '') {
+      const log = document.getElementById('log-stream');
+      if (!log) return;
+      const entry = document.createElement('div');
+      entry.className = 'log-entry ' + type;
+      entry.innerHTML = `<span class="log-ts">[${new Date().toLocaleTimeString()}]</span> ${msg}`;
+      log.prepend(entry);
+    }
+
     function initArena() {
       const arena = document.getElementById('arena');
       arena.querySelectorAll('.tgt').forEach(t => t.remove());
@@ -884,16 +893,29 @@
         });
       });
 
+      // Calculate metrics for badges
+      const all = Object.values(timings).flat();
+      const avg = Math.round(all.reduce((a, b) => a + b, 0) / all.length);
+      const acc = Math.round((all.length / (all.length + misses)) * 100);
+
+      const badgeList = [];
+      if (all.length === sequence.length) badgeList.push('CENTURION');
+      if (avg < 400) badgeList.push('SPEED DEMON');
+      if (acc >= 99) badgeList.push('PRECISION MASTER');
+
+      const hw = localStorage.getItem('fitts_hardware') || 'mouse';
+
       const data = {
         athlete: localStorage.getItem('fitts_user_name') || 'Guest',
-        hardware: localStorage.getItem('fitts_hardware') || 'mouse',
+        hardware: hw,
         timestamp: new Date().toISOString(),
         version: 'v2',
         metrics: {
-          avgMT: document.getElementById('r-avg').textContent,
-          acc: document.getElementById('r-acc').textContent,
-          targets: document.getElementById('r-total').textContent
+          avgMT: avg + 'ms', // Use calculated avg
+          acc: acc + '%',    // Use calculated acc
+          targets: all.length
         },
+        badges: badgeList,
         trials: allTrials
       };
 

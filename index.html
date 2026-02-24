@@ -467,6 +467,48 @@
             z-index: 100;
         }
 
+        .logout-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 50, 50, 0.1);
+            border: 1px solid rgba(255, 50, 50, 0.3);
+            color: #ff8888;
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-family: var(--fmono);
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 10000;
+            /* Higher z-index */
+            animation: fadeUp 0.5s 0.2s ease forwards;
+            opacity: 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .logout-btn:hover {
+            background: #ff3333;
+            border-color: #ff3333;
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(255, 50, 50, 0.4);
+        }
+
+        .logout-btn svg {
+            transition: transform 0.3s;
+        }
+
+        .logout-btn:hover svg {
+            transform: translateX(-2px);
+        }
+
         /* Modal Overlay */
         .modal-overlay {
             position: fixed;
@@ -734,14 +776,6 @@
 
 <body>
 
-    <div class="modal-overlay" id="name-modal">
-        <div class="modal">
-            <h2 class="modal-title">Ready?</h2>
-            <p class="modal-desc">Tell us your name to track your segments and join the leaderboard.</p>
-            <input type="text" class="name-input" id="user-name-input" placeholder="Athlete Name" maxlength="12">
-            <button class="modal-btn" onclick="saveName()">Continue</button>
-        </div>
-    </div>
 
     <!-- Decorative rings -->
     <div class="rings">
@@ -887,15 +921,6 @@
                     </div>
                 </a>
 
-                <!-- LEGACY (v7.0) -->
-                <a href="fitts-law-v1.html?legacy=true" class="card" style="border-style: dashed; opacity: 0.7;">
-                    <div class="card-difficulty easy" style="background: #777;">LEGACY</div>
-                    <div class="card-version" style="background: #222;">V0</div>
-                    <div class="card-title">RETRO VAULT</div>
-                    <p class="card-desc">Experience the minimalist origins. No telemetry, no XP, just basic scientific
-                        measurement.</p>
-                    <div class="card-arrow">Enter Vault</div>
-                </a>
             </div>
 
             <div class="footer">HCI · Fitts' Law Experiment Suite</div>
@@ -962,11 +987,15 @@
 
             function checkUser() {
                 const user = localStorage.getItem('fitts_user_name');
+                const logoutBtn = document.querySelector('.logout-btn');
+                const modal = document.getElementById('name-modal');
                 if (user) {
-                    document.getElementById('name-modal').style.display = 'none';
+                    modal.classList.remove('active');
+                    if (logoutBtn) logoutBtn.style.display = 'flex';
                     showGreeting(user);
                 } else {
-                    document.getElementById('name-modal').style.display = 'flex';
+                    modal.classList.add('active');
+                    if (logoutBtn) logoutBtn.style.display = 'none';
                 }
             }
 
@@ -976,8 +1005,7 @@
                 if (name) {
                     localStorage.setItem('fitts_user_name', name);
                     localStorage.setItem('fitts_hardware', selectedHw);
-                    document.getElementById('name-modal').style.display = 'none';
-                    showGreeting(name);
+                    checkUser();
                 }
             }
 
@@ -1035,8 +1063,9 @@
             }
 
             function logout() {
-                if (confirm('LOGOUT? This will clear your current callsign session.')) {
+                if (confirm('LOGOUT? This will clear your current callsign and hardware selection.')) {
                     localStorage.removeItem('fitts_user_name');
+                    localStorage.removeItem('fitts_hardware');
                     location.reload();
                 }
             }
