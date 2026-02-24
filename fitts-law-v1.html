@@ -1513,6 +1513,34 @@
             </div>
 
             <div class="r-chart-wrap">
+              <div class="r-chart-title">MT BY TARGET SIZE</div>
+              <div class="r-bar-row">
+                <div class="r-bar-dot lg"></div>
+                <div class="r-bar-lbl">LARGE</div>
+                <div class="r-bar-track">
+                  <div class="r-bar-fill lg" id="bLg"></div>
+                </div>
+                <div class="r-bar-ms" id="bLgMs">—</div>
+              </div>
+              <div class="r-bar-row">
+                <div class="r-bar-dot md"></div>
+                <div class="r-bar-lbl">MEDIUM</div>
+                <div class="r-bar-track">
+                  <div class="r-bar-fill md" id="bMd"></div>
+                </div>
+                <div class="r-bar-ms" id="bMdMs">—</div>
+              </div>
+              <div class="r-bar-row">
+                <div class="r-bar-dot sm"></div>
+                <div class="r-bar-lbl">SMALL</div>
+                <div class="r-bar-track">
+                  <div class="r-bar-fill sm" id="bSm"></div>
+                </div>
+                <div class="r-bar-ms" id="bSmMs">—</div>
+              </div>
+            </div>
+
+            <div class="r-chart-wrap" style="margin-top: 10px;">
               <div class="r-chart-title">ID vs MT CORRELATION</div>
               <div id="fitts-plot-v1"
                 style="height: 120px; width: 100%; border-top: 1px solid #222; margin-top: 10px; position: relative;">
@@ -1536,14 +1564,15 @@
               </div>
             </div>
 
-            <div class="insight-card" style="margin-top: 24px;">
+            <div class="insight-card">
               <div class="cv-title">COACH AI INSIGHT</div>
               <div id="insightTxt" class="insight-txt">
                 Analyzing your movement dynamics...
               </div>
             </div>
+
             <div class="r-cta">
-              <div class="r-actions" style="display: flex; gap: 12px; margin: 0 18px 16px;">
+              <div class="r-actions" style="display: flex; gap: 12px;">
                 <button class="retry-btn"
                   style="flex: 1; height: 50px; background: var(--cyan); color: #000; border: none; font-weight: 900; letter-spacing: 1px; border-radius: 8px;"
                   onclick="resetToStart()">↺ TRY AGAIN</button>
@@ -1552,389 +1581,388 @@
                   onclick="exportData()">💾 EXPORT DATA</button>
               </div>
               <button class="btn-outline"
-                style="width: calc(100% - 36px); margin: 0 18px 24px; padding: 14px; color: var(--gray2); border-color: rgba(255,255,255,0.1); font-size: 11px; letter-spacing: 2px;"
+                style="width: 100%; padding: 14px; color: var(--gray2); border-color: rgba(255,255,255,0.1); font-size: 11px; letter-spacing: 2px;"
                 onclick="goTo('s1')">EXIT TO BASE</button>
             </div>
-          </div>
 
+          </div>
+        </div>
+
+        <div class="home-ind">
+          <div class="home-bar"></div>
         </div>
       </div>
 
-      <div class="home-ind">
-        <div class="home-bar"></div>
+      <!-- Dots nav -->
+      <div class="nav-dots">
+        <div class="nd on" id="nd0" onclick="goTo('s1')"></div>
+        <div class="nd" id="nd1" onclick="goTo('s2')"></div>
+        <div class="nd" id="nd2" onclick="startExp()"></div>
+        <div class="nd" id="nd3"></div>
       </div>
     </div>
 
-    <!-- Dots nav -->
-    <div class="nav-dots">
-      <div class="nd on" id="nd0" onclick="goTo('s1')"></div>
-      <div class="nd" id="nd1" onclick="goTo('s2')"></div>
-      <div class="nd" id="nd2" onclick="startExp()"></div>
-      <div class="nd" id="nd3"></div>
-    </div>
-  </div>
+    <script>
+      /* ── BUILD DOT GRID ── */
+      const dg = document.getElementById('dotGrid');
+      for (let i = 0; i < 64; i++) { const s = document.createElement('span'); dg.appendChild(s); }
 
-  <script>
-    /* ── BUILD DOT GRID ── */
-    const dg = document.getElementById('dotGrid');
-    for (let i = 0; i < 64; i++) { const s = document.createElement('span'); dg.appendChild(s); }
-
-    /* ── NAV ── */
-    const SCREENS = ['s1', 's2', 's3', 's4'];
-    function goTo(id) {
-      SCREENS.forEach((s, i) => {
-        document.getElementById(s).classList.toggle('active', s === id);
-        const nd = document.getElementById('nd' + i);
-        if (nd) nd.classList.toggle('on', s === id);
-      });
-      document.getElementById('appScroll').scrollTop = 0;
-    }
-
-    /* ── TRIALS ── */
-    const TRIALS = [
-      { id: 0, size: 'large', label: 'L1', topP: 6, leftP: 8, distance: 'FAR' },
-      { id: 1, size: 'large', label: 'L2', topP: 14, leftP: 68, distance: 'FAR' },
-      { id: 2, size: 'large', label: 'L3', topP: 42, leftP: 52, distance: 'MID' },
-      { id: 3, size: 'medium', label: 'M1', topP: 55, leftP: 4, distance: 'MID' },
-      { id: 4, size: 'medium', label: 'M2', topP: 24, leftP: 28, distance: 'MID' },
-      { id: 5, size: 'medium', label: 'M3', topP: 5, leftP: 46, distance: 'FAR' },
-      { id: 6, size: 'small', label: 'S1', topP: 28, leftP: 72, distance: 'MID' },
-      { id: 7, size: 'small', label: 'S2', topP: 60, leftP: 36, distance: 'NEAR' },
-    ];
-    const SZ = { large: 'sz-lg', medium: 'sz-md', small: 'sz-sm' };
-
-    let G = { phase: 'idle', trial: 0, t0: 0, results: [], hits: 0, misses: 0, timer: null, cumTimes: [] };
-
-    /* ── BUILD TARGETS ── */
-    function buildTargets() {
-      const field = document.getElementById('playField');
-      field.querySelectorAll('.tgt').forEach(e => e.remove());
-      const fH = field.offsetHeight || 530, fW = field.offsetWidth || 358;
-      const szPx = { large: 86, medium: 58, small: 38 };
-      TRIALS.forEach(t => {
-        const btn = document.createElement('button');
-        btn.className = `tgt ${SZ[t.size]}`;
-        btn.id = 'tgt-' + t.id;
-        const sz = szPx[t.size];
-        btn.style.top = Math.min(t.topP / 100 * fH, fH - sz - 32) + 'px';
-        btn.style.left = Math.min(t.leftP / 100 * fW, fW - sz - 6) + 'px';
-        btn.innerHTML = `${t.label}<span class="tgt-sub">${t.size.toUpperCase()}</span><span class="tgt-dist">${t.distance}</span>`;
-        btn.addEventListener('click', (e) => onHit(e, t.id));
-        field.appendChild(btn);
-      });
-    }
-
-    /* ── START EXP ── */
-    function startExp() {
-      G = { phase: 'awaitStart', trial: 0, t0: 0, results: [], hits: 0, misses: 0, timer: null, cumTimes: [] };
-      goTo('s3');
-      setTimeout(() => { buildTargets(); updateUI(); }, 120);
-    }
-
-    /* ── START CLICK ── */
-    function handleStart() {
-      if (G.phase !== 'awaitStart') return;
-      G.phase = 'playing'; G.t0 = performance.now();
-      const sb = document.getElementById('startBtn');
-      sb.classList.remove('pulsing'); sb.classList.add('active-s');
-      const t = TRIALS[G.trial];
-      document.getElementById('tgt-' + t.id).classList.add('vis', 'active-t');
-      document.getElementById('eBanner').innerHTML = `Hit the <strong>${t.size.toUpperCase()}</strong> button!`;
-      clearInterval(G.timer);
-      G.timer = setInterval(() => {
-        document.getElementById('eTimer').textContent = ((performance.now() - G.t0) / 1000).toFixed(2) + 's';
-      }, 50);
-    }
-
-    /* ── TARGET CLICK ── */
-    function onHit(e, id) {
-      if (G.phase !== 'playing') return;
-      const t = TRIALS[G.trial];
-      recordResult(t, t.id === id, e);
-    }
-
-    function recordResult(t, hit, e) {
-      clearInterval(G.timer);
-      const elapsed = performance.now() - G.t0;
-
-      const targetEl = document.getElementById('tgt-' + t.id);
-      const rect = targetEl.getBoundingClientRect();
-      const clickX = e ? (e.clientX - rect.left) / rect.width : 0.5;
-      const clickY = e ? (e.clientY - rect.top) / rect.height : 0.5;
-
-      G.results.push({ size: t.size, distance: t.distance, label: t.label, time: elapsed, hit, clickX, clickY });
-      if (hit) {
-        G.hits++;
-        targetEl.classList.remove('active-t'); targetEl.classList.add('hit');
-        showToast(elapsed < 600 ? '⚡ FAST! ' + Math.round(elapsed) + 'ms' : '✓ HIT — ' + Math.round(elapsed) + 'ms', elapsed < 600 ? 'fast' : '');
-      } else {
-        G.misses++;
-        targetEl.classList.add('missed');
-        showToast('✗ MISS — tap the glowing one!', 'slow');
-        setTimeout(() => targetEl.classList.remove('missed'), 400);
-        return;
+      /* ── NAV ── */
+      const SCREENS = ['s1', 's2', 's3', 's4'];
+      function goTo(id) {
+        SCREENS.forEach((s, i) => {
+          document.getElementById(s).classList.toggle('active', s === id);
+          const nd = document.getElementById('nd' + i);
+          if (nd) nd.classList.toggle('on', s === id);
+        });
+        document.getElementById('appScroll').scrollTop = 0;
       }
-      G.cumTimes.push((G.cumTimes.length ? G.cumTimes[G.cumTimes.length - 1] : 0) + elapsed);
-      updateGhostPace();
 
-      updateStats(); G.trial++;
-      if (G.trial >= TRIALS.length) setTimeout(showResults, 600);
-      else setTimeout(resetRound, 450);
-    }
+      /* ── TRIALS ── */
+      const TRIALS = [
+        { id: 0, size: 'large', label: 'L1', topP: 6, leftP: 8, distance: 'FAR' },
+        { id: 1, size: 'large', label: 'L2', topP: 14, leftP: 68, distance: 'FAR' },
+        { id: 2, size: 'large', label: 'L3', topP: 42, leftP: 52, distance: 'MID' },
+        { id: 3, size: 'medium', label: 'M1', topP: 55, leftP: 4, distance: 'MID' },
+        { id: 4, size: 'medium', label: 'M2', topP: 24, leftP: 28, distance: 'MID' },
+        { id: 5, size: 'medium', label: 'M3', topP: 5, leftP: 46, distance: 'FAR' },
+        { id: 6, size: 'small', label: 'S1', topP: 28, leftP: 72, distance: 'MID' },
+        { id: 7, size: 'small', label: 'S2', topP: 60, leftP: 36, distance: 'NEAR' },
+      ];
+      const SZ = { large: 'sz-lg', medium: 'sz-md', small: 'sz-sm' };
 
-    function updateGhostPace() {
-      const pbTimes = JSON.parse(localStorage.getItem('fitts_pb_cum_v1') || '[]');
-      if (!pbTimes.length) return;
+      let G = { phase: 'idle', trial: 0, t0: 0, results: [], hits: 0, misses: 0, timer: null, cumTimes: [] };
 
-      const ghost = document.getElementById('ghost-pace');
-      const delta = document.getElementById('ghost-delta');
-      ghost.style.display = 'block';
-
-      const currentCum = G.cumTimes[G.cumTimes.length - 1];
-      const pbCum = pbTimes[G.cumTimes.length - 1];
-      const diff = Math.round(currentCum - pbCum);
-
-      if (diff <= 0) {
-        delta.textContent = `${Math.abs(diff)}ms AHEAD`;
-        delta.style.color = 'var(--lime)';
-      } else {
-        delta.textContent = `${diff}ms BEHIND`;
-        delta.style.color = 'var(--pink)';
+      /* ── BUILD TARGETS ── */
+      function buildTargets() {
+        const field = document.getElementById('playField');
+        field.querySelectorAll('.tgt').forEach(e => e.remove());
+        const fH = field.offsetHeight || 530, fW = field.offsetWidth || 358;
+        const szPx = { large: 86, medium: 58, small: 38 };
+        TRIALS.forEach(t => {
+          const btn = document.createElement('button');
+          btn.className = `tgt ${SZ[t.size]}`;
+          btn.id = 'tgt-' + t.id;
+          const sz = szPx[t.size];
+          btn.style.top = Math.min(t.topP / 100 * fH, fH - sz - 32) + 'px';
+          btn.style.left = Math.min(t.leftP / 100 * fW, fW - sz - 6) + 'px';
+          btn.innerHTML = `${t.label}<span class="tgt-sub">${t.size.toUpperCase()}</span><span class="tgt-dist">${t.distance}</span>`;
+          btn.addEventListener('click', (e) => onHit(e, t.id));
+          field.appendChild(btn);
+        });
       }
-    }
 
-    function resetRound() {
-      document.querySelectorAll('.tgt').forEach(e => e.classList.remove('vis', 'active-t', 'hit'));
-      const sb = document.getElementById('startBtn');
-      sb.classList.remove('active-s'); sb.classList.add('pulsing');
-      G.phase = 'awaitStart';
-      document.getElementById('eTimer').textContent = '0.00s';
-      document.getElementById('eBanner').innerHTML = `Tap <strong>START</strong> to begin trial <span id="eTN">${G.trial + 1}</span>`;
-      updateUI();
-    }
-
-    function updateUI() {
-      document.getElementById('ePF').style.width = (G.trial / 8 * 100) + '%';
-      document.getElementById('ePT').textContent = G.trial + '/8';
-    }
-    function updateStats() {
-      const times = G.results.filter(r => r.hit).map(r => r.time);
-      const avg = times.length ? Math.round(times.reduce((a, b) => a + b, 0) / times.length) : null;
-      const best = times.length ? Math.round(Math.min(...times)) : null;
-      // Init name
-      const name = localStorage.getItem('fitts_user_name') || 'Athlete';
-      document.getElementById('profile-name').textContent = name;
-
-      const v = localStorage.getItem('fitts_xp') || '0';
-      document.getElementById('xp-count').textContent = v;
-
-      // Legacy Check
-      if (new URLSearchParams(window.location.search).get('legacy') === 'true') {
-        document.body.classList.add('legacy');
-        document.title = "Fitts Law Simulator v0.1 (Legacy)";
+      /* ── START EXP ── */
+      function startExp() {
+        G = { phase: 'awaitStart', trial: 0, t0: 0, results: [], hits: 0, misses: 0, timer: null, cumTimes: [] };
+        goTo('s3');
+        setTimeout(() => { buildTargets(); updateUI(); }, 120);
       }
-      document.getElementById('eHits').textContent = G.hits;
-      document.getElementById('eMiss').textContent = G.misses;
-      document.getElementById('eAvg').textContent = avg || '—';
-      document.getElementById('eBest').textContent = best || '—';
-    }
-    function showToast(msg, cls) {
-      const t = document.getElementById('toast');
-      t.textContent = msg; t.className = 'toast show' + (cls ? ' ' + cls : '');
-      setTimeout(() => t.className = 'toast', 1500);
-    }
 
-    /* ── RESULTS ── */
-    function showResults() {
-      goTo('s4');
-      const R = G.results, hits = R.filter(r => r.hit);
-      const avg = hits.length ? Math.round(hits.reduce((a, b) => a + b.time, 0) / hits.length) : 0;
-      const best = hits.length ? Math.round(Math.min(...hits.map(r => r.time))) : 0;
-      const slow = hits.length ? Math.round(Math.max(...hits.map(r => r.time))) : 0;
+      /* ── START CLICK ── */
+      function handleStart() {
+        if (G.phase !== 'awaitStart') return;
+        G.phase = 'playing'; G.t0 = performance.now();
+        const sb = document.getElementById('startBtn');
+        sb.classList.remove('pulsing'); sb.classList.add('active-s');
+        const t = TRIALS[G.trial];
+        document.getElementById('tgt-' + t.id).classList.add('vis', 'active-t');
+        document.getElementById('eBanner').innerHTML = `Hit the <strong>${t.size.toUpperCase()}</strong> button!`;
+        clearInterval(G.timer);
+        G.timer = setInterval(() => {
+          document.getElementById('eTimer').textContent = ((performance.now() - G.t0) / 1000).toFixed(2) + 's';
+        }, 50);
+      }
 
-      document.getElementById('rHits').textContent = G.hits;
-      document.getElementById('rAvg').textContent = avg + 'MS';
-      document.getElementById('rBest').textContent = best + 'MS';
-      document.getElementById('rSlow').textContent = slow + 'MS';
+      /* ── TARGET CLICK ── */
+      function onHit(e, id) {
+        if (G.phase !== 'playing') return;
+        const t = TRIALS[G.trial];
+        recordResult(t, t.id === id, e);
+      }
 
-      const bySize = { large: [], medium: [], small: [] };
-      hits.forEach(r => bySize[r.size].push(r.time));
-      const aLg = av(bySize.large), aMd = av(bySize.medium), aSm = av(bySize.small);
-      const mx = Math.max(aLg, aMd, aSm, 1);
+      function recordResult(t, hit, e) {
+        clearInterval(G.timer);
+        const elapsed = performance.now() - G.t0;
 
-      setTimeout(() => {
-        setBar('bLg', 'bLgMs', aLg, mx);
-        setBar('bMd', 'bMdMs', aMd, mx);
-        setBar('bSm', 'bSmMs', aSm, mx);
-      }, 350);
+        const targetEl = document.getElementById('tgt-' + t.id);
+        const rect = targetEl.getBoundingClientRect();
+        const clickX = e ? (e.clientX - rect.left) / rect.width : 0.5;
+        const clickY = e ? (e.clientY - rect.top) / rect.height : 0.5;
 
-      // ── FITTS PLOT & COACH AI (v6.3) ──
-      const plot = document.getElementById('fitts-plot-v1');
-      plot.querySelectorAll('.dot').forEach(d => d.remove());
-
-      const sessionData = hits.map(r => {
-        // Calculate ID based on Fitts' Law: ID = log2(2D/W)
-        // For simplicity, using a proxy for D (distance) and W (width/size)
-        // D is implicitly handled by the target's position/distance category
-        // W is handled by the target's size category
-        // Let's map distance to a numerical value and size to a numerical value for D/W
-        // This is a simplified ID calculation for demonstration
-        const distMap = { 'NEAR': 1, 'MID': 2, 'FAR': 3 };
-        const sizeMap = { 'small': 1, 'medium': 2, 'large': 3 }; // Smaller number means smaller width
-
-        // Using a simplified D/W ratio based on categories
-        // A more accurate Fitts' Law would require actual pixel distances and widths
-        const effectiveD = distMap[TRIALS.find(t => t.label === r.label).distance];
-        const effectiveW = sizeMap[r.size];
-
-        // Ensure effectiveW is not zero for log2 calculation
-        const id = Math.log2((2 * effectiveD) / effectiveW);
-        return { id, mt: r.time };
-      });
-
-      const maxID = Math.max(...sessionData.map(d => d.id), 5); // Ensure a minimum range for scaling
-      const minID = Math.min(...sessionData.map(d => d.id), 1); // Ensure a minimum range for scaling
-      const maxMT = Math.max(...sessionData.map(d => d.mt), 1000); // Ensure a minimum range for scaling
-
-      sessionData.forEach(d => {
-        const dot = document.createElement('div');
-        dot.className = 'dot';
-        // Scale ID to 5-95% for left position
-        const left = ((d.id - minID) / (maxID - minID)) * 90 + 5;
-        // Scale MT to 5-95% for bottom position (inverted for chart, higher MT is higher on chart)
-        const bottom = (d.mt / maxMT) * 90 + 5;
-        dot.style.cssText = `position:absolute; bottom:${bottom}%; left:${left}%; width:6px; height:6px; background:var(--acc); border-radius:50%; box-shadow:0 0 5px var(--acc);`;
-        plot.appendChild(dot);
-      });
-
-      // Coach AI Logic
-      let coachTxt = "";
-      const lowID = sessionData.filter(d => d.id < 3);
-      const highID = sessionData.filter(d => d.id >= 3);
-      const avgLow = lowID.length ? lowID.reduce((a, b) => a + b.mt, 0) / lowID.length : 0;
-      const avgHigh = highID.length ? highID.reduce((a, b) => a + b.mt, 0) / highID.length : 0;
-
-      // DRAW HEATMAP (v6.7)
-      const hm = document.getElementById('v1-heatmap');
-      hm.querySelectorAll('.hm-dot').forEach(d => d.remove());
-      hits.forEach(r => {
-        const dot = document.createElement('div');
-        dot.className = 'hm-dot';
-        dot.style.cssText = `position:absolute; left:${r.clickX * 100}%; top:${r.clickY * 100}%; width:6px; height:6px; background:var(--cyan); border-radius:50%; transform:translate(-50%,-50%); box-shadow:0 0 10px var(--cyan); opacity:0.6;`;
-        hm.appendChild(dot);
-      });
-
-      // Coach AI Insights
-      let txt = '';
-      const acc = Math.round(G.hits / R.length * 100);
-      if (aSm > aLg * 1.1) txt = `Movement efficiency confirmed: <strong>Target size significantly impacts your MT</strong>. You are ${Math.round((aSm - aLg) / aLg * 100)}% slower on small targets. Optimal hardware calibration recommended.`;
-      else txt = `Impressive focus: Your MT variance is minimal across target scales. You've adapted your motor 'flick' to compensate for smaller hit-boxes. Keep this speed for elite rankings.`;
-
-      if (acc < 90) txt += `<br><br><strong>CRITICAL:</strong> Precision fallout detected. Your click density is scattered. Focus on center-mass hits to maintain XP multipliers.`;
-
-      document.getElementById('insightTxt').innerHTML = txt;
-
-      // LEADERBOARD LOGGING (v4.4)
-      const userName = localStorage.getItem('fitts_user_name') || 'Guest Athlete';
-      const leaderboard = JSON.parse(localStorage.getItem('fitts_leaderboard') || '[]');
-
-      const entryBadges = [];
-      let beatMessage = "";
-
-      if (leaderboard.length === 0) entryBadges.push("First Blood");
-      if (acc === 100) entryBadges.push("Sniper");
-
-      // v7.0 Badges
-      if (G.hits === 10) entryBadges.push("CENTURION");
-      if (avg < 400) entryBadges.push("SPEED DEMON");
-
-      const preciseHits = hits.filter(r => {
-        const dX = r.clickX - 0.5, dY = r.clickY - 0.5;
-        return Math.sqrt(dX * dX + dY * dY) < 0.15;
-      });
-      if (preciseHits.length > G.hits * 0.8) entryBadges.push("PRECISION MASTER");
-
-      const sortedPrev = [...leaderboard].sort((a, b) => a.avg - b.avg);
-      if (sortedPrev.length > 0) {
-        if (avg < sortedPrev[0].avg) {
-          entryBadges.push("Leader");
-          if (sortedPrev[0].name !== userName) beatMessage = `You beat ${sortedPrev[0].name}!`;
+        G.results.push({ size: t.size, distance: t.distance, label: t.label, time: elapsed, hit, clickX, clickY });
+        if (hit) {
+          G.hits++;
+          targetEl.classList.remove('active-t'); targetEl.classList.add('hit');
+          showToast(elapsed < 600 ? '⚡ FAST! ' + Math.round(elapsed) + 'ms' : '✓ HIT — ' + Math.round(elapsed) + 'ms', elapsed < 600 ? 'fast' : '');
         } else {
-          const beaten = sortedPrev.find(e => avg < e.avg && e.name !== userName);
-          if (beaten) beatMessage = `You beat ${beaten.name}!`;
+          G.misses++;
+          targetEl.classList.add('missed');
+          showToast('✗ MISS — tap the glowing one!', 'slow');
+          setTimeout(() => targetEl.classList.remove('missed'), 400);
+          return;
+        }
+        G.cumTimes.push((G.cumTimes.length ? G.cumTimes[G.cumTimes.length - 1] : 0) + elapsed);
+        updateGhostPace();
+
+        updateStats(); G.trial++;
+        if (G.trial >= TRIALS.length) setTimeout(showResults, 600);
+        else setTimeout(resetRound, 450);
+      }
+
+      function updateGhostPace() {
+        const pbTimes = JSON.parse(localStorage.getItem('fitts_pb_cum_v1') || '[]');
+        if (!pbTimes.length) return;
+
+        const ghost = document.getElementById('ghost-pace');
+        const delta = document.getElementById('ghost-delta');
+        ghost.style.display = 'block';
+
+        const currentCum = G.cumTimes[G.cumTimes.length - 1];
+        const pbCum = pbTimes[G.cumTimes.length - 1];
+        const diff = Math.round(currentCum - pbCum);
+
+        if (diff <= 0) {
+          delta.textContent = `${Math.abs(diff)}ms AHEAD`;
+          delta.style.color = 'var(--lime)';
+        } else {
+          delta.textContent = `${diff}ms BEHIND`;
+          delta.style.color = 'var(--pink)';
         }
       }
 
-      // XP CALCULATION (v6.0)
-      const baseXP = 100;
-      const accXP = acc * 5;
-      const speedXP = Math.max(0, Math.round((1000 - avg) / 2));
-      const totalXP = Math.round((baseXP + accXP + speedXP) * 1.0); // V1 multiplier: 1.0
-
-      const currentXP = parseInt(localStorage.getItem('fitts_xp') || '0');
-      localStorage.setItem('fitts_xp', currentXP + totalXP);
-
-      const entry = {
-        name: userName,
-        avg,
-        acc,
-        timestamp: new Date().toISOString(),
-        badges: entryBadges,
-        beat: beatMessage,
-        version: G.legacy ? 'v0' : 'v1',
-        hw: localStorage.getItem('fitts_hardware') || 'mouse',
-        xpGain: totalXP,
-        fittsData: sessionData // For later scatter plot recall
-      };
-      leaderboard.push(entry);
-      localStorage.setItem('fitts_leaderboard', JSON.stringify(leaderboard));
-
-      // Update Cumulative PB (v6.5)
-      const currentCum = G.cumTimes;
-      const prevPBCum = JSON.parse(localStorage.getItem('fitts_pb_cum_v1') || '[]');
-      if (!prevPBCum.length || currentCum[currentCum.length - 1] < prevPBCum[prevPBCum.length - 1]) {
-        localStorage.setItem('fitts_pb_cum_v1', JSON.stringify(currentCum));
+      function resetRound() {
+        document.querySelectorAll('.tgt').forEach(e => e.classList.remove('vis', 'active-t', 'hit'));
+        const sb = document.getElementById('startBtn');
+        sb.classList.remove('active-s'); sb.classList.add('pulsing');
+        G.phase = 'awaitStart';
+        document.getElementById('eTimer').textContent = '0.00s';
+        document.getElementById('eBanner').innerHTML = `Tap <strong>START</strong> to begin trial <span id="eTN">${G.trial + 1}</span>`;
+        updateUI();
       }
 
-      // DAILY GP LOGIC (v6.6)
-      const today = new Date().toISOString().split('T')[0];
-    }
+      function updateUI() {
+        document.getElementById('ePF').style.width = (G.trial / 8 * 100) + '%';
+        document.getElementById('ePT').textContent = G.trial + '/8';
+      }
+      function updateStats() {
+        const times = G.results.filter(r => r.hit).map(r => r.time);
+        const avg = times.length ? Math.round(times.reduce((a, b) => a + b, 0) / times.length) : null;
+        const best = times.length ? Math.round(Math.min(...times)) : null;
+        // Init name
+        const name = localStorage.getItem('fitts_user_name') || 'Athlete';
+        document.getElementById('profile-name').textContent = name;
 
-    function av(arr) { return arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : 0; }
-    function setBar(fillId, msId, val, max) {
-      document.getElementById(fillId).style.width = val ? Math.max(val / max * 100, 8) + '%' : '0%';
-      document.getElementById(msId).textContent = val ? val + 'ms' : '—';
-    }
-    function exportData() {
-      const data = {
-        athlete: localStorage.getItem('fitts_user_name') || 'Guest',
-        hardware: localStorage.getItem('fitts_hardware') || 'mouse',
-        timestamp: new Date().toISOString(),
-        version: 'v1',
-        metrics: {
-          avgMT: document.getElementById('rAvg').textContent,
-          hits: G.hits,
-          misses: G.misses,
-          acc: Math.round(G.hits / (G.hits + G.misses) * 100) + '%'
-        },
-        trials: G.results.map(r => ({
-          trial: r.trial,
-          size: r.size,
-          dist: r.dist,
-          time: r.time,
-          hit: r.hit
-        }))
-      };
+        const v = localStorage.getItem('fitts_xp') || '0';
+        document.getElementById('xp-count').textContent = v;
 
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `fitts_data_v1_${Date.now()}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-  </script>
+        // Legacy Check
+        if (new URLSearchParams(window.location.search).get('legacy') === 'true') {
+          document.body.classList.add('legacy');
+          document.title = "Fitts Law Simulator v0.1 (Legacy)";
+        }
+        document.getElementById('eHits').textContent = G.hits;
+        document.getElementById('eMiss').textContent = G.misses;
+        document.getElementById('eAvg').textContent = avg || '—';
+        document.getElementById('eBest').textContent = best || '—';
+      }
+      function showToast(msg, cls) {
+        const t = document.getElementById('toast');
+        t.textContent = msg; t.className = 'toast show' + (cls ? ' ' + cls : '');
+        setTimeout(() => t.className = 'toast', 1500);
+      }
+
+      /* ── RESULTS ── */
+      function showResults() {
+        goTo('s4');
+        const R = G.results, hits = R.filter(r => r.hit);
+        const avg = hits.length ? Math.round(hits.reduce((a, b) => a + b.time, 0) / hits.length) : 0;
+        const best = hits.length ? Math.round(Math.min(...hits.map(r => r.time))) : 0;
+        const slow = hits.length ? Math.round(Math.max(...hits.map(r => r.time))) : 0;
+
+        document.getElementById('rHits').textContent = G.hits;
+        document.getElementById('rAvg').textContent = avg + 'MS';
+        document.getElementById('rBest').textContent = best + 'MS';
+        document.getElementById('rSlow').textContent = slow + 'MS';
+
+        const bySize = { large: [], medium: [], small: [] };
+        hits.forEach(r => bySize[r.size].push(r.time));
+        const aLg = av(bySize.large), aMd = av(bySize.medium), aSm = av(bySize.small);
+        const mx = Math.max(aLg, aMd, aSm, 1);
+
+        setTimeout(() => {
+          setBar('bLg', 'bLgMs', aLg, mx);
+          setBar('bMd', 'bMdMs', aMd, mx);
+          setBar('bSm', 'bSmMs', aSm, mx);
+        }, 350);
+
+        // ── FITTS PLOT & COACH AI (v6.3) ──
+        const plot = document.getElementById('fitts-plot-v1');
+        plot.querySelectorAll('.dot').forEach(d => d.remove());
+
+        const sessionData = hits.map(r => {
+          // Calculate ID based on Fitts' Law: ID = log2(2D/W)
+          // For simplicity, using a proxy for D (distance) and W (width/size)
+          // D is implicitly handled by the target's position/distance category
+          // W is handled by the target's size category
+          // Let's map distance to a numerical value and size to a numerical value for D/W
+          // This is a simplified ID calculation for demonstration
+          const distMap = { 'NEAR': 1, 'MID': 2, 'FAR': 3 };
+          const sizeMap = { 'small': 1, 'medium': 2, 'large': 3 }; // Smaller number means smaller width
+
+          // Using a simplified D/W ratio based on categories
+          // A more accurate Fitts' Law would require actual pixel distances and widths
+          const effectiveD = distMap[TRIALS.find(t => t.label === r.label).distance];
+          const effectiveW = sizeMap[r.size];
+
+          // Ensure effectiveW is not zero for log2 calculation
+          const id = Math.log2((2 * effectiveD) / effectiveW);
+          return { id, mt: r.time };
+        });
+
+        const maxID = Math.max(...sessionData.map(d => d.id), 5); // Ensure a minimum range for scaling
+        const minID = Math.min(...sessionData.map(d => d.id), 1); // Ensure a minimum range for scaling
+        const maxMT = Math.max(...sessionData.map(d => d.mt), 1000); // Ensure a minimum range for scaling
+
+        sessionData.forEach(d => {
+          const dot = document.createElement('div');
+          dot.className = 'dot';
+          // Scale ID to 5-95% for left position
+          const left = ((d.id - minID) / (maxID - minID)) * 90 + 5;
+          // Scale MT to 5-95% for bottom position (inverted for chart, higher MT is higher on chart)
+          const bottom = (d.mt / maxMT) * 90 + 5;
+          dot.style.cssText = `position:absolute; bottom:${bottom}%; left:${left}%; width:6px; height:6px; background:var(--acc); border-radius:50%; box-shadow:0 0 5px var(--acc);`;
+          plot.appendChild(dot);
+        });
+
+        // Coach AI Logic
+        let coachTxt = "";
+        const lowID = sessionData.filter(d => d.id < 3);
+        const highID = sessionData.filter(d => d.id >= 3);
+        const avgLow = lowID.length ? lowID.reduce((a, b) => a + b.mt, 0) / lowID.length : 0;
+        const avgHigh = highID.length ? highID.reduce((a, b) => a + b.mt, 0) / highID.length : 0;
+
+        // DRAW HEATMAP (v6.7)
+        const hm = document.getElementById('v1-heatmap');
+        hm.querySelectorAll('.hm-dot').forEach(d => d.remove());
+        hits.forEach(r => {
+          const dot = document.createElement('div');
+          dot.className = 'hm-dot';
+          dot.style.cssText = `position:absolute; left:${r.clickX * 100}%; top:${r.clickY * 100}%; width:6px; height:6px; background:var(--cyan); border-radius:50%; transform:translate(-50%,-50%); box-shadow:0 0 10px var(--cyan); opacity:0.6;`;
+          hm.appendChild(dot);
+        });
+
+        // Coach AI Insights
+        let txt = '';
+        const acc = Math.round(G.hits / R.length * 100);
+        if (aSm > aLg * 1.1) txt = `Movement efficiency confirmed: <strong>Target size significantly impacts your MT</strong>. You are ${Math.round((aSm - aLg) / aLg * 100)}% slower on small targets. Optimal hardware calibration recommended.`;
+        else txt = `Impressive focus: Your MT variance is minimal across target scales. You've adapted your motor 'flick' to compensate for smaller hit-boxes. Keep this speed for elite rankings.`;
+
+        if (acc < 90) txt += `<br><br><strong>CRITICAL:</strong> Precision fallout detected. Your click density is scattered. Focus on center-mass hits to maintain XP multipliers.`;
+
+        document.getElementById('insightTxt').innerHTML = txt;
+
+        // LEADERBOARD LOGGING (v4.4)
+        const userName = localStorage.getItem('fitts_user_name') || 'Guest Athlete';
+        const leaderboard = JSON.parse(localStorage.getItem('fitts_leaderboard') || '[]');
+
+        const entryBadges = [];
+        let beatMessage = "";
+
+        if (leaderboard.length === 0) entryBadges.push("First Blood");
+        if (acc === 100) entryBadges.push("Sniper");
+
+        // v7.0 Badges
+        if (G.hits === 10) entryBadges.push("CENTURION");
+        if (avg < 400) entryBadges.push("SPEED DEMON");
+
+        const preciseHits = hits.filter(r => {
+          const dX = r.clickX - 0.5, dY = r.clickY - 0.5;
+          return Math.sqrt(dX * dX + dY * dY) < 0.15;
+        });
+        if (preciseHits.length > G.hits * 0.8) entryBadges.push("PRECISION MASTER");
+
+        const sortedPrev = [...leaderboard].sort((a, b) => a.avg - b.avg);
+        if (sortedPrev.length > 0) {
+          if (avg < sortedPrev[0].avg) {
+            entryBadges.push("Leader");
+            if (sortedPrev[0].name !== userName) beatMessage = `You beat ${sortedPrev[0].name}!`;
+          } else {
+            const beaten = sortedPrev.find(e => avg < e.avg && e.name !== userName);
+            if (beaten) beatMessage = `You beat ${beaten.name}!`;
+          }
+        }
+
+        // XP CALCULATION (v6.0)
+        const baseXP = 100;
+        const accXP = acc * 5;
+        const speedXP = Math.max(0, Math.round((1000 - avg) / 2));
+        const totalXP = Math.round((baseXP + accXP + speedXP) * 1.0); // V1 multiplier: 1.0
+
+        const currentXP = parseInt(localStorage.getItem('fitts_xp') || '0');
+        localStorage.setItem('fitts_xp', currentXP + totalXP);
+
+        const entry = {
+          name: userName,
+          avg,
+          acc,
+          timestamp: new Date().toISOString(),
+          badges: entryBadges,
+          beat: beatMessage,
+          version: G.legacy ? 'v0' : 'v1',
+          hw: localStorage.getItem('fitts_hardware') || 'mouse',
+          xpGain: totalXP,
+          fittsData: sessionData // For later scatter plot recall
+        };
+        leaderboard.push(entry);
+        localStorage.setItem('fitts_leaderboard', JSON.stringify(leaderboard));
+
+        // Update Cumulative PB (v6.5)
+        const currentCum = G.cumTimes;
+        const prevPBCum = JSON.parse(localStorage.getItem('fitts_pb_cum_v1') || '[]');
+        if (!prevPBCum.length || currentCum[currentCum.length - 1] < prevPBCum[prevPBCum.length - 1]) {
+          localStorage.setItem('fitts_pb_cum_v1', JSON.stringify(currentCum));
+        }
+
+        // DAILY GP LOGIC (v6.6)
+        const today = new Date().toISOString().split('T')[0];
+      }
+
+      function av(arr) { return arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : 0; }
+      function setBar(fillId, msId, val, max) {
+        document.getElementById(fillId).style.width = val ? Math.max(val / max * 100, 8) + '%' : '0%';
+        document.getElementById(msId).textContent = val ? val + 'ms' : '—';
+      }
+      function exportData() {
+        const data = {
+          athlete: localStorage.getItem('fitts_user_name') || 'Guest',
+          hardware: localStorage.getItem('fitts_hardware') || 'mouse',
+          timestamp: new Date().toISOString(),
+          version: 'v1',
+          metrics: {
+            avgMT: document.getElementById('rAvg').textContent,
+            hits: G.hits,
+            misses: G.misses,
+            acc: Math.round(G.hits / (G.hits + G.misses) * 100) + '%'
+          },
+          trials: G.results.map(r => ({
+            trial: r.trial,
+            size: r.size,
+            dist: r.dist,
+            time: r.time,
+            hit: r.hit
+          }))
+        };
+
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `fitts_data_v1_${Date.now()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    </script>
 </body>
 
 </html>
